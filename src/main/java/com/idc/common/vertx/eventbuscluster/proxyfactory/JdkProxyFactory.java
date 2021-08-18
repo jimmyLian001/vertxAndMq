@@ -13,7 +13,7 @@ import java.lang.reflect.Proxy;
  * @version : Version:1.0.0
  * @date : 2021/8/17 ProjectName: vertxAndKafka
  */
-public class JdkProxyFactory extends AbstractProxyFactory{
+public class JdkProxyFactory extends AbstractProxyFactory {
 
     @Override
     @SuppressWarnings("unchecked")

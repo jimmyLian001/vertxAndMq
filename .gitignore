@@ -9,6 +9,7 @@ target/
 .classpath
 vertxAndMq.iml
 .idea
+.vertx
 #clib_winx64
 .idea/*.xml
 */*.iml

@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
  * @author lian zd
  * @date 2021/08/18
  */
@@ -30,6 +29,7 @@ public class ClusteredVertxServer {
     private static Logger logger = LoggerFactory.getLogger(ClusteredVertxServer.class);
     private static ConcurrentHashMap<String, Invoker<Object>> invokerMap = new ConcurrentHashMap<>();
     private static final ProxyFactory proxyFactory = new JdkProxyFactory();
+    private Vertx clusterVertx = null;
     /**
      * context
      */
@@ -37,21 +37,20 @@ public class ClusteredVertxServer {
     private ApplicationContext ctx;
 
 
-    public void setAndStart() {
+    public Vertx setAndStart(String vertxEventBusName) {
         initAndBuildInvoker();
-
         ClusterManager mgr = new ZookeeperClusterManager();
-        //mgr.setVertx(vertx);
         VertxOptions options = new VertxOptions().setClusterManager(mgr).setClusterHost(NetworkUtil.getInterface());
         Vertx.clusteredVertx(options, res -> {
             if (res.succeeded()) {
+                clusterVertx = res.result();
                 logger.debug("-------------------start deploy clustered event bus------");
-                res.result().deployVerticle(new BaseVerticle("vertx.cluster.replyHello"), new DeploymentOptions());
+                res.result().deployVerticle(new BaseVerticle(vertxEventBusName), new DeploymentOptions());
             } else {
                 logger.debug("Failed: " + res.cause());
             }
         });
-
+        return clusterVertx;
     }
 
 
@@ -80,5 +79,9 @@ public class ClusteredVertxServer {
 
     public void destroy() {
         invokerMap.clear();
+    }
+
+    public Vertx getClusterVertx() {
+        return clusterVertx;
     }
 }

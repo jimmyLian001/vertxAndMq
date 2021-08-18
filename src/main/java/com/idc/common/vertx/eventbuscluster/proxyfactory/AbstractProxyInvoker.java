@@ -4,6 +4,7 @@ import com.idc.common.po.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.CompletionException;
  * @version : Version:1.0.0
  * @date : 2021/8/17 ProjectName: vertxAndKafka
  */
-public abstract class AbstractProxyInvoker <T> implements Invoker<T> {
+public abstract class AbstractProxyInvoker<T> implements Invoker<T> {
     Logger logger = LoggerFactory.getLogger(AbstractProxyInvoker.class);
 
     private final T proxy;
@@ -68,10 +69,12 @@ public abstract class AbstractProxyInvoker <T> implements Invoker<T> {
         }
     }
 
-    private CompletableFuture<Object> wrapWithFuture (Object value, Invocation invocation) {
+    private CompletableFuture<Object> wrapWithFuture(Object value, Invocation invocation) {
         return CompletableFuture.completedFuture(value);
     }
 
-    protected abstract Object doInvoke(T proxy, String methodName, Class<?>[] parameterTypes, Object[] arguments) throws Throwable;
+    protected abstract Object doInvoke(T proxy, String methodName,
+                                       Class<?>[] parameterTypes,
+                                       Object[] arguments) throws Throwable;
 
 }

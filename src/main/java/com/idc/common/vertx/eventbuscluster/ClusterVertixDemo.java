@@ -1,12 +1,14 @@
 package com.idc.common.vertx.eventbuscluster;
 
+import com.idc.common.po.RpcInvocation;
+import com.idc.common.po.VertxMessageReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 /**
- * 描述：
+ * 描述：ClusterVertixDemo
  * <p>
  *
  * @author : lian zd
@@ -22,11 +24,25 @@ public class ClusterVertixDemo {
     @Autowired
     private ClusterVertxClient clusterVertxClient;
 
+    private String eventBusName = "vertx.cluster.replyHello";
+
     @PostConstruct
+    public void initServerCluster() throws Exception {
+        clusteredVertxServer.setAndStart(eventBusName);
+    }
+
+    //    @PostConstruct
     public void initCluster() throws Exception {
-        clusteredVertxServer.setAndStart();
-        Thread.sleep(1000);
-//        clusterVertxClient.setAndStart();
+        clusterVertxClient.setAndStart();
+        VertxMessageReq vertxMessageReq = new VertxMessageReq();
+        vertxMessageReq.setTimeStamp(System.currentTimeMillis());
+        vertxMessageReq.setContent("hello,this is from vertx event bus client");
+        vertxMessageReq.setSide(1);
+        vertxMessageReq.setSequence(201);
+        RpcInvocation invocation = new RpcInvocation();
+        invocation.setInterfaceName("SayHello");
+        invocation.setResource("default");
+        clusterVertxClient.sendMessageToEventBusSyn(eventBusName, vertxMessageReq, 60 * 1000);
     }
 
 }
