@@ -1,0 +1,11 @@
+{
+  "zookeeperHosts":"172.16.97.60:2181",
+  "sessionTimeout":20000,
+  "connectTimeout":3000,
+  "rootPath":"io.vertx.cluster.test",
+  "retry": {
+    "initialSleepTime":100,
+    "intervalTimes":10000,
+    "maxTimes":5
+  }
+}

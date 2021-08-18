@@ -1,0 +1,14 @@
+#folder
+target/
+#fixed file
+.class
+*/*.log
+*/*.*.log
+.prefs
+.project
+.classpath
+vertxAndMq.iml
+.idea
+#clib_winx64
+.idea/*.xml
+*/*.iml
