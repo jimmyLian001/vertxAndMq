@@ -1,5 +1,6 @@
 package com.idc.common.vertx.eventbuscluster;
 
+import com.alibaba.fastjson.JSON;
 import com.idc.common.po.AppResponse;
 import com.idc.common.po.RpcInvocation;
 import com.idc.common.po.VertxMessageReq;
@@ -82,13 +83,14 @@ public class ClusterVertxClient {
             try {
                 if (asyncResult.failed()) {
                     appResponse.setException(asyncResult.cause());
-                    appResponse.setValue("500");
-                    logger.error("vertx asyncResult error:", asyncResult.cause());
+                    appResponse.setValue("vertx request error");
+                    appResponse.setErrorMessage(asyncResult.cause().getMessage());
                 } else {
-                    appResponse.setValue(asyncResult.result().body());
-                    logger.info("vertx asyncResult result:{}", appResponse.getValue());
+                    appResponse = JSON.parseObject(asyncResult.result().body().encode(), AppResponse.class);
                 }
             } catch (Exception e) {
+                appResponse.setException(e);
+                appResponse.setValue("vertx handle response error");
                 logger.error("FeatureTask run error");
             }
             future.complete(appResponse);
@@ -99,8 +101,9 @@ public class ClusterVertxClient {
 
     /**
      * say hello
+     *
      * @param vertxMessageReq 请求参数
-     * @param eventBusName 总线名称
+     * @param eventBusName    总线名称
      * @return
      * @throws ExecutionException
      * @throws InterruptedException
@@ -115,9 +118,10 @@ public class ClusterVertxClient {
     }
 
     /**
-     * getAddressInfo
+     * say hello
+     *
      * @param vertxMessageReq 请求参数
-     * @param eventBusName 总线名称
+     * @param eventBusName    总线名称
      * @return
      * @throws ExecutionException
      * @throws InterruptedException
@@ -133,8 +137,9 @@ public class ClusterVertxClient {
 
     /**
      * updateAddressInfo
+     *
      * @param vertxMessageReq 请求参数
-     * @param eventBusName 总线名称
+     * @param eventBusName    总线名称
      * @return
      * @throws ExecutionException
      * @throws InterruptedException

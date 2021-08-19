@@ -1,14 +1,22 @@
 package com.idc.common.vertx.eventbuscluster;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.util.TypeUtils;
 import com.idc.common.po.AddressPo;
 import com.idc.common.po.AppResponse;
+import com.idc.common.po.Response;
 import com.idc.common.po.VertxMessageReq;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.*;
 
 /**
  * 描述：ClusterVertixDemo
@@ -44,13 +52,13 @@ public class ClusterVertixDemo {
         vertxMessageReq.setContent("hello,this is from vertx event bus client");
         vertxMessageReq.setSide(1);
         vertxMessageReq.setSequence(201);
-        Thread.sleep(1000);
+        Thread.sleep(3000);
         AppResponse result = clusterVertxClient.replyHello(vertxMessageReq, eventBusName);
-        logger.info("send and get hello result:{}", result);
+        logger.info("send and get hello result:{}", result.getValue());
         vertxMessageReq.setContent("zidan.lian");
         vertxMessageReq.setSequence(202);
         AppResponse addressInfo = clusterVertxClient.getAddressInfo(vertxMessageReq, eventBusName);
-        logger.info("address info  result:{}", addressInfo);
+        logger.info("address info result:{}", addressInfo.getValue());
         AddressPo addressPo = new AddressPo();
         addressPo.setName("zidan.lian");
         addressPo.setAddress("上海市浦东新区杨高南路759号陆家嘴世纪金融广场2号楼16楼");
@@ -59,7 +67,42 @@ public class ClusterVertixDemo {
         vertxMessageReq.setContent(addressPo);
         vertxMessageReq.setSequence(203);
         AppResponse addressUpdateResult = clusterVertxClient.updateAddressInfo(vertxMessageReq, eventBusName);
-        logger.info("address info update result:{}", addressUpdateResult);
+        logger.info("address info update result:{}", addressUpdateResult.getValue());
+        if (!addressUpdateResult.hasException() && addressUpdateResult.getStatus() == Response.OK) {
+            AddressPo addressResult = TypeUtils.castToJavaBean(addressUpdateResult.getValue(), AddressPo.class);
+            System.out.println(addressResult);
+        }
+/*        final ExecutorService executorService = new ThreadPoolExecutor(26, 32, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        long begin = System.currentTimeMillis();
+        for (int i = 0; i < 10000; i++) {
+            executorService.submit(new FeatureTask(vertxMessageReq, begin));
+        }*/
+    }
+
+    public class FeatureTask implements Runnable {
+        private VertxMessageReq vertxMessageReq;
+        private long start;
+
+        public FeatureTask(VertxMessageReq vertxMessageReq, long start) {
+            this.vertxMessageReq = vertxMessageReq;
+            this.start = start;
+        }
+
+        @Override
+        public void run() {
+            AppResponse addressUpdateResult1 = null;
+            try {
+                vertxMessageReq.setTimeStamp(System.currentTimeMillis());
+                addressUpdateResult1 = clusterVertxClient.updateAddressInfo(vertxMessageReq, eventBusName);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            logger.info("address info update result:{},时间差:{}", addressUpdateResult1, System.currentTimeMillis() - start);
+
+
+        }
     }
 
 }

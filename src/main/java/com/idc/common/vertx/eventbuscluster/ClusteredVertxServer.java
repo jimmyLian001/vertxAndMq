@@ -79,6 +79,10 @@ public class ClusteredVertxServer {
 
     public void destroy() {
         invokerMap.clear();
+        if(clusterVertx != null){
+            clusterVertx.close();
+        }
+
     }
 
     public Vertx getClusterVertx() {
