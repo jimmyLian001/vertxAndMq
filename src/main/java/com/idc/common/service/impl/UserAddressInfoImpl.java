@@ -29,7 +29,7 @@ public class UserAddressInfoImpl implements UserAddressInfo {
      */
     @Override
     public AddressPo getAddress(VertxMessageReq params) {
-        String content = params.getContent();
+        String content = (String) params.getContent();
         logger.info("获取地址信息，请求参数:{}", content);
         AddressPo addressPo = new AddressPo();
         addressPo.setName("zidan.lian");
@@ -42,11 +42,12 @@ public class UserAddressInfoImpl implements UserAddressInfo {
     /**
      * 修改联系地址
      *
-     * @param addressPo 待修改的地址信息
+     * @param params 待修改的地址信息
      * @return 更新的地址信息
      */
     @Override
-    public AddressPo updateAddress(AddressPo addressPo) {
+    public AddressPo updateAddress(VertxMessageReq params) {
+        AddressPo addressPo = (AddressPo) params.getContent();
         addressPo.setAddress("上海市浦东信息陆家嘴环路未来资产大厦32F");
         return addressPo;
     }

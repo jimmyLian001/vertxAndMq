@@ -1,7 +1,7 @@
 package com.idc.common.vertx.eventbuscluster;
 
+import com.idc.common.po.AddressPo;
 import com.idc.common.po.AppResponse;
-import com.idc.common.po.RpcInvocation;
 import com.idc.common.po.VertxMessageReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,15 @@ public class ClusterVertixDemo {
         vertxMessageReq.setSequence(202);
         AppResponse addressInfo = clusterVertxClient.getAddressInfo(vertxMessageReq, eventBusName);
         logger.info("address info  result:{}", addressInfo);
+        AddressPo addressPo = new AddressPo();
+        addressPo.setName("zidan.lian");
+        addressPo.setAddress("上海市浦东新区杨高南路759号陆家嘴世纪金融广场2号楼16楼");
+        addressPo.setUserId("0790");
+        addressPo.setTel("13127933306");
+        vertxMessageReq.setContent(addressPo);
+        vertxMessageReq.setSequence(203);
+        AppResponse addressUpdateResult = clusterVertxClient.updateAddressInfo(vertxMessageReq, eventBusName);
+        logger.info("address info update result:{}", addressUpdateResult);
     }
 
 }

@@ -13,7 +13,7 @@ public class VertxMessageReq {
     private RpcInvocation invocation;
     private long timeStamp;
 
-    private String content;
+    private Object content;
     /**
      * 1：请求，2返回
      */
@@ -34,11 +34,11 @@ public class VertxMessageReq {
         this.invocation = invocation;
     }
 
-    public String getContent() {
+    public Object getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(Object content) {
         this.content = content;
     }
 

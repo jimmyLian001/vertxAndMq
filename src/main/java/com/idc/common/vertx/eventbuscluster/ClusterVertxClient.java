@@ -115,7 +115,7 @@ public class ClusterVertxClient {
     }
 
     /**
-     * say hello
+     * getAddressInfo
      * @param vertxMessageReq 请求参数
      * @param eventBusName 总线名称
      * @return
@@ -127,6 +127,23 @@ public class ClusterVertxClient {
         invocation.setInterfaceName("userAddressInfo");
         invocation.setResource("default");
         invocation.setMethodName("getAddress");
+        vertxMessageReq.setInvocation(invocation);
+        return this.sendMessageToEventBusSyn(eventBusName, vertxMessageReq, 60 * 1000);
+    }
+
+    /**
+     * updateAddressInfo
+     * @param vertxMessageReq 请求参数
+     * @param eventBusName 总线名称
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public AppResponse updateAddressInfo(VertxMessageReq vertxMessageReq, String eventBusName) throws ExecutionException, InterruptedException {
+        RpcInvocation invocation = new RpcInvocation();
+        invocation.setInterfaceName("userAddressInfo");
+        invocation.setResource("default");
+        invocation.setMethodName("updateAddress");
         vertxMessageReq.setInvocation(invocation);
         return this.sendMessageToEventBusSyn(eventBusName, vertxMessageReq, 60 * 1000);
     }

@@ -24,9 +24,9 @@ public interface UserAddressInfo {
     /**
      * 修改联系地址
      *
-     * @param addressPo 待修改的地址信息
+     * @param params 待修改的地址信息
      * @return 更新的地址信息
      */
-    AddressPo updateAddress(AddressPo addressPo);
+    AddressPo updateAddress(VertxMessageReq params);
 
 }
