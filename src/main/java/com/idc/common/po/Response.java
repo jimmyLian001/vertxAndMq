@@ -69,69 +69,69 @@ public class Response {
      */
     public static final byte SERVER_THREADPOOL_EXHAUSTED_ERROR = 100;
 
-    private long mId = 0;
+    private long id = 0;
 
-    private String mVersion;
+    private String version;
 
-    private int mStatus = OK;
+    private int status = OK;
 
-    private boolean mEvent = false;
+    private boolean event = false;
 
-    private String mErrorMsg;
+    private String errorMessage;
 
-    private Object mResult;
+    private Object result;
 
     public Response() {
     }
 
     public Response(long id) {
-        mId = id;
+        this.id = id;
     }
 
     public Response(long id, String version) {
-        mId = id;
-        mVersion = version;
+        this.id = id;
+        this.version = version;
     }
 
     public long getId() {
-        return mId;
+        return id;
     }
 
     public void setId(long id) {
-        mId = id;
+        id = id;
     }
 
     public String getVersion() {
-        return mVersion;
+        return version;
     }
 
     public void setVersion(String version) {
-        mVersion = version;
+        this.version = version;
     }
 
     public int getStatus() {
-        return mStatus;
+        return status;
     }
 
     public void setStatus(int status) {
-        mStatus = status;
+        this.status = status;
     }
 
     public boolean isEvent() {
-        return mEvent;
+        return event;
     }
 
     public void setEvent(String event) {
-        mEvent = true;
-        mResult = event;
+        this.event = true;
+        result = event;
     }
 
     public void setEvent(boolean mEvent) {
-        this.mEvent = mEvent;
+        this.event = mEvent;
     }
 
     public boolean isHeartbeat() {
-        return mEvent && HEARTBEAT_EVENT == mResult;
+        return event && HEARTBEAT_EVENT == result;
     }
 
     @Deprecated
@@ -142,24 +142,24 @@ public class Response {
     }
 
     public Object getResult() {
-        return mResult;
+        return result;
     }
 
     public void setResult(Object msg) {
-        mResult = msg;
+        result = msg;
     }
 
     public String getErrorMessage() {
-        return mErrorMsg;
+        return errorMessage;
     }
 
     public void setErrorMessage(String msg) {
-        mErrorMsg = msg;
+        errorMessage = msg;
     }
 
     @Override
     public String toString() {
-        return "Response [id=" + mId + ", version=" + mVersion + ", status=" + mStatus + ", event=" + mEvent
-                + ", error=" + mErrorMsg + ", result=" + (mResult == this ? "this" : mResult) + "]";
+        return "Response [id=" + id + ", version=" + version + ", status=" + status + ", event=" + event
+                + ", error=" + errorMessage + ", result=" + (result == this ? "this" : result) + "]";
     }
 }
