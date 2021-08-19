@@ -33,6 +33,7 @@ public class VertxMessageHandle {
         Class<?>[] interfaceClass = {Class.forName("com.idc.common.po.VertxMessageReq", true, Thread.currentThread()
                 .getContextClassLoader())};
         invocation.setParameterTypes(interfaceClass);
+        req.setInvocation(null);
         invocation.setArguments(new Object[]{req});
         Invoker<Object> invoker = ClusteredVertxServer.getInvoker(invocation.getInterfaceName() + "_" + invocation.getResource());
         if (invoker == null) {
