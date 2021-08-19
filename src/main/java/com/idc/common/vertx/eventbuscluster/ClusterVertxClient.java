@@ -1,8 +1,10 @@
 package com.idc.common.vertx.eventbuscluster;
 
 import com.idc.common.po.AppResponse;
+import com.idc.common.po.RpcInvocation;
 import com.idc.common.po.VertxMessageReq;
 import com.idc.common.util.NetworkUtil;
+import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -17,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author lian zd
@@ -40,9 +41,9 @@ public class ClusterVertxClient {
         return res -> {
             if (res.succeeded()) {
                 clusterVertx = res.result();
-                logger.info("-------------------start deploy clustered event bus------");
+                logger.info("-----start deploy clustered event bus------");
             } else {
-                logger.error("Failed: ", res.cause());
+                logger.error("Failed create Vertx cluster: ", res.cause());
             }
         };
 
@@ -56,6 +57,11 @@ public class ClusterVertxClient {
                 executorService.submit(new FeatureTask(resultBody, future));
             });
 
+        } else {
+            AppResponse appResponse = new AppResponse();
+            appResponse.setValue("400");
+            appResponse.setException(new RpcException("Cluster Vertx has not init finished,please wait!"));
+            future.complete(appResponse);
         }
         return future.get();
     }
@@ -76,13 +82,12 @@ public class ClusterVertxClient {
             try {
                 if (asyncResult.failed()) {
                     appResponse.setException(asyncResult.cause());
-                    appResponse.setValue("1000");
+                    appResponse.setValue("500");
                     logger.error("vertx asyncResult error:", asyncResult.cause());
                 } else {
                     appResponse.setValue(asyncResult.result().body());
-                    logger.error("vertx asyncResult result:{}", appResponse.getValue());
+                    logger.info("vertx asyncResult result:{}", appResponse.getValue());
                 }
-                System.out.println(1);
             } catch (Exception e) {
                 logger.error("FeatureTask run error");
             }
@@ -91,4 +96,39 @@ public class ClusterVertxClient {
 
         }
     }
+
+    /**
+     * say hello
+     * @param vertxMessageReq 请求参数
+     * @param eventBusName 总线名称
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public AppResponse replyHello(VertxMessageReq vertxMessageReq, String eventBusName) throws ExecutionException, InterruptedException {
+        RpcInvocation invocation = new RpcInvocation();
+        invocation.setInterfaceName("SayHello");
+        invocation.setResource("default");
+        invocation.setMethodName("replyHello");
+        vertxMessageReq.setInvocation(invocation);
+        return this.sendMessageToEventBusSyn(eventBusName, vertxMessageReq, 60 * 1000);
+    }
+
+    /**
+     * say hello
+     * @param vertxMessageReq 请求参数
+     * @param eventBusName 总线名称
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public AppResponse getAddressInfo(VertxMessageReq vertxMessageReq, String eventBusName) throws ExecutionException, InterruptedException {
+        RpcInvocation invocation = new RpcInvocation();
+        invocation.setInterfaceName("userAddressInfo");
+        invocation.setResource("default");
+        invocation.setMethodName("getAddress");
+        vertxMessageReq.setInvocation(invocation);
+        return this.sendMessageToEventBusSyn(eventBusName, vertxMessageReq, 60 * 1000);
+    }
+
 }
