@@ -19,7 +19,7 @@ public class SayHelloImpl implements SayHello {
 
     @Override
     public VertxMessageRes replyHello(VertxMessageReq params) {
-        logger.info("接收客户端消息：{}", params);
+        logger.info("第一个被代理对象的处理，请求参数：{}", params);
         VertxMessageRes result = new VertxMessageRes();
         result.setCode("200");
         result.setMsg("[回复]客户端你好!");
