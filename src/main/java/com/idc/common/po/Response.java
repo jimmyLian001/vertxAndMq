@@ -42,7 +42,7 @@ public class Response {
     /**
      * response format error.
      */
-    public static final byte BAD_RESPONSE = 50;
+    public static final int BAD_RESPONSE = 501;
 
     /**
      * service not found.
@@ -80,6 +80,8 @@ public class Response {
     private String errorMessage;
 
     private Object result;
+
+    private boolean heartbeat ;
 
     public Response() {
     }

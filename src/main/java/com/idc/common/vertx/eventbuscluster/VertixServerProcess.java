@@ -1,5 +1,6 @@
 package com.idc.common.vertx.eventbuscluster;
 
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
@@ -36,30 +37,33 @@ public class VertixServerProcess implements Runnable {
 
 
     private void doRemoteInvocation() {
-        Response res = new Response();
         try {
             CompletionStage<Object> future = vertxMessageHandle.reply(message);
             future.whenComplete((appResult, t) -> {
+                AppResponse response = new AppResponse();
                 try {
                     if (t == null) {
-                        res.setStatus(Response.OK);
-                        res.setResult(appResult);
+                        response = (AppResponse) appResult;
+                        response.setStatus(Response.OK);
                     } else {
-                        res.setStatus(Response.SERVICE_ERROR);
-                        res.setErrorMessage("处理失败：" + t.getMessage());
+                        response.setStatus(Response.SERVICE_ERROR);
+                        response.setErrorMessage("处理失败：" + t.getMessage());
                     }
-                    message.reply(JsonObject.mapFrom(res));
                 } catch (Exception e) {
+                    response.setStatus(Response.BAD_RESPONSE);
+                    response.setErrorMessage("system error:" + e.getMessage());
                     logger.warn("Send result to consumer failed, channel is " + message + ", msg is " + e);
                 } finally {
                     // HeaderExchangeChannel.removeChannelIfDisconnected(channel);
                 }
+                message.reply(JsonObject.mapFrom(response));
             });
         } catch (Exception e) {
             logger.error("doRemoteInvocation error:", e);
-            res.setStatus(Response.SERVICE_NOT_FOUND);
-            res.setErrorMessage("处理失败：" + e.getMessage());
-            message.reply(JsonObject.mapFrom(res));
+            AppResponse response = new AppResponse();
+            response.setStatus(Response.SERVICE_NOT_FOUND);
+            response.setErrorMessage("处理失败：" + e.getMessage());
+            message.reply(JsonObject.mapFrom(response));
         }
     }
 

@@ -22,6 +22,26 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
 
     private Throwable exception;
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    private int status = Response.OK;
+
+    private String errorMessage;
+
     private Map<String, String> attachments = new HashMap<String, String>();
 
     public AppResponse() {
