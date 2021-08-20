@@ -44,7 +44,7 @@ public class ClusterVertixDemo {
         clusteredVertxServer.setAndStart(eventBusName);
     }
 
-    @PostConstruct
+//    @PostConstruct
     public void initCluster() throws Exception {
         clusterVertxClient.setAndStart();
         VertxMessageReq vertxMessageReq = new VertxMessageReq();

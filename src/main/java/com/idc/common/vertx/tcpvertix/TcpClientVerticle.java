@@ -63,7 +63,7 @@ public class TcpClientVerticle extends AbstractVerticle {
         });
 
         // 模拟客户端发消息 每次10秒钟
-        vertx.setPeriodic(1000L * 10, t -> {
+        vertx.setPeriodic(3000L * 10, t -> {
             if (netSocket != null) {
                 netSocket.write(VertxMsgUtils.joinMsg(socketId, "Hello Vert.x,this tcp message is from vertx client"));
             }

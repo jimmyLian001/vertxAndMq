@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -77,12 +78,23 @@ public class ClusteredVertxServer {
         return invokerMap.get(key);
     }
 
+    /**
+     * 总线销毁
+     */
     public void destroy() {
-        invokerMap.clear();
-        if(clusterVertx != null){
-            clusterVertx.close();
+        try {
+            logger.info("cluster destroy begin");
+            invokerMap.clear();
+            if (clusterVertx != null) {
+                Set<String> strings = clusterVertx.deploymentIDs();
+                strings.forEach(item -> {
+                    clusterVertx.undeploy(item);
+                });
+            }
+            logger.info("cluster destroy success");
+        } catch (Exception e) {
+            logger.error("cluster destroy error:", e);
         }
-
     }
 
     public Vertx getClusterVertx() {

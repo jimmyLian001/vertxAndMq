@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  * 描述：Tcp Verticle 测试类
  * <p>
@@ -24,7 +26,7 @@ public class TcpVerticleDemo {
     @Autowired
     private TcpClientVerticle tcpClientVerticle;
 
-//    @PostConstruct
+    @PostConstruct
     public void start() throws InterruptedException {
         log.info("Tcp Verticle Demo start");
         Vertx.vertx().deployVerticle(netServerVerticle);
