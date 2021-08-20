@@ -26,7 +26,7 @@ public class TcpVerticleDemo {
     @Autowired
     private TcpClientVerticle tcpClientVerticle;
 
-    @PostConstruct
+//    @PostConstruct
     public void start() throws InterruptedException {
         log.info("Tcp Verticle Demo start");
         Vertx.vertx().deployVerticle(netServerVerticle);

@@ -1,5 +1,7 @@
 package com.idc.common.util;
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * 描述：
  * <p>
@@ -13,7 +15,11 @@ public final class VertxMsgUtils {
     }
 
     public static String joinMsg(String socketId, String body) {
-        return socketId+"*"+body+"\n";
+        return socketId + "*" + body + "\n";
+    }
+
+    public static String joinMsg(Object body) {
+        return JSON.toJSONString(body) + "idcEnd";
     }
 
 }

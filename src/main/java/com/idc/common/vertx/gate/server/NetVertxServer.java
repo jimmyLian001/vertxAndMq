@@ -1,6 +1,8 @@
 package com.idc.common.vertx.gate.server;
 
+import com.alibaba.fastjson.JSON;
 import com.idc.common.util.VertxMsgUtils;
+import com.idc.common.vertx.gate.common.VertxTcpMessage;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
@@ -25,7 +27,7 @@ import java.util.Map;
  * @date : 2021/5/7 ProjectName: vertxDemo
  */
 @Component
-public class NetServerVerticleTemp extends AbstractVerticle {
+public class NetVertxServer extends AbstractVerticle {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static final Map<String, NetSocket> SOCKET_MAP = new HashMap<>();
@@ -36,42 +38,47 @@ public class NetServerVerticleTemp extends AbstractVerticle {
     public void start() throws Exception {
         NetServerOptions options = new NetServerOptions();
         options.setTcpKeepAlive(true);
-
-        final RecordParser parser = RecordParser.newDelimited("\n", h -> {
-            final String msg = h.toString();
-            log.info("服务器解包:{}", msg);
-
-            final String[] msgSplit = msg.split("\\*");
-            final String socketId = msgSplit[0];
-            final String msgBody = msgSplit[1];
-
-            if ("PING".equals(msgBody)) { // 心跳
-                ACTIVE_SOCKET_MAP.put(socketId, System.currentTimeMillis());
-                SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(socketId, "PING"));
+        //idcEnd消息结束标识
+        final RecordParser parser = RecordParser.newDelimited("idcEnd", h -> {
+            VertxTcpMessage vertxTcpMessage = JSON.parseObject(h.toString(), VertxTcpMessage.class);
+            log.info("Net Vertx TCP Server receive:{}", vertxTcpMessage);
+            final String socketId = vertxTcpMessage.getSocketId();
+            // 心跳
+            if (vertxTcpMessage.isHeartBeat()) {
+                long timeStamp = System.currentTimeMillis();
+                ACTIVE_SOCKET_MAP.put(socketId, timeStamp);
+                vertxTcpMessage.setTimeStamp(timeStamp);
+                vertxTcpMessage.setHeartBeat(Boolean.TRUE);
+                vertxTcpMessage.setSide(2);
+                SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
             } else {
                 // 其他信息，这里简单模拟一下，原样返回给客户端
-                SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(socketId, msgBody));
-                log.info("收到客户端消息socketId：{}，msgBody：{}", socketId, msgBody);
+                SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
+                log.info("收到客户端消息socketId：{}，msgBody：{}", socketId, "msgBody mock");
             }
         });
 
         NetServer server = vertx.createNetServer(options);
 
         ReadStream<NetSocket> stream = server.connectStream();
+        //接收消息
         stream.handler(netSocket -> {
             String socketId = netSocket.writeHandlerID();
             log.debug("New socket Id:{} ", socketId);
-            netSocket.handler(parser::handle);
-            netSocket.write(socketId + "*" + "Server\n");
-
+            netSocket.handler(parser);
+            VertxTcpMessage vertxTcpMessageCon = new VertxTcpMessage();
+            vertxTcpMessageCon.setHeartBeat(Boolean.FALSE);
+            vertxTcpMessageCon.setSide(0);
+            vertxTcpMessageCon.setSocketId(socketId);
+            netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessageCon));
             SOCKET_MAP.put(socketId, netSocket);
             ACTIVE_SOCKET_MAP.put(socketId, System.currentTimeMillis());
         });
-
+        //结束拦截
         stream.endHandler(end -> {
             log.info("stream end");
         });
-
+        //异常拦截
         stream.exceptionHandler(ex -> {
             log.info("stream ex :{} ", ex.getMessage());
             ex.printStackTrace();
@@ -96,7 +103,8 @@ public class NetServerVerticleTemp extends AbstractVerticle {
             }
         });
 
-        server.listen(8081, res -> {
+        //开启TCP端口监听
+        server.listen(8082, res -> {
             if (res.succeeded()) {
                 log.info("Server start !!!");
             } else {
