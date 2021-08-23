@@ -1,18 +1,15 @@
 package com.idc.common.vertx.gate.client;
 
-import com.alibaba.fastjson.JSON;
-import com.idc.common.util.VertxMsgUtils;
-import com.idc.common.vertx.gate.common.VertxTcpMessage;
-import io.vertx.core.AbstractVerticle;
+import com.idc.common.vertx.gate.exchage.Channel;
+import com.idc.common.vertx.gate.exchage.DefaultChannelHandler;
+import com.idc.common.vertx.gate.exchage.VertxChannel;
+import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.core.net.NetSocket;
-import io.vertx.core.parsetools.RecordParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.net.InetSocketAddress;
 
 /**
  * 描述：
@@ -23,61 +20,63 @@ import java.util.UUID;
  * @date : 2021/5/7 ProjectName: vertxDemo
  */
 @Component
-public class NetVertxClient extends AbstractVerticle {
+public class NetVertxClient extends AbstractClient {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private String socketId;
-    private NetSocket netSocket;
+    private NetClient client;
     private boolean connected = Boolean.FALSE;
+    private NetVertxVerticle netVertxVerticle;
 
+    /**
+     * Init bootstrap
+     *
+     * @throws Throwable
+     */
     @Override
-    public void start() throws Exception {
-        NetClientOptions options = new NetClientOptions();
-        options.setTcpKeepAlive(true);
-        options.setReconnectAttempts(10);
-        options.setReconnectInterval(30000);
-        NetClient client = vertx.createNetClient();
-
-        final RecordParser parser = RecordParser.newDelimited("idcEnd", h -> {
-            String msg = h.toString();
-            log.info("Net Vertx TCP client receive:{} ", msg);
-            VertxTcpMessage response = JSON.parseObject(msg, VertxTcpMessage.class);
-
-            if (response.getSide() == 0) {
-                socketId = response.getSocketId();
-            } else {
-                // do anyThing
-            }
-        });
-
-        client.connect(8082, "127.0.0.1", conn -> {
-            if (conn.succeeded()) {
-                log.info("client ok");
-                netSocket = conn.result();
-                connected = Boolean.TRUE;
-                netSocket.handler(parser);
-            } else {
-                conn.cause().printStackTrace();
-                log.error("Net Vertx TCP client connect to Server error:", conn.cause());
-            }
-        });
-        VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
-        vertxTcpMessage.setHeartBeat(Boolean.TRUE);
-        vertxTcpMessage.setSide(1);
-        // 客户端每 30 秒 发送一次心跳包
-        vertx.setPeriodic(1000L * 20, t -> {
-            if (netSocket != null) {
-                vertxTcpMessage.setTimeStamp(System.currentTimeMillis());
-                vertxTcpMessage.setMessageId(UUID.randomUUID().toString());
-                vertxTcpMessage.setSocketId(socketId);
-                netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
-            }
-        });
-
+    protected void doOpen() throws Throwable {
+        netVertxVerticle = new NetVertxVerticle();
+        Vertx.vertx().deployVerticle(netVertxVerticle);
+    }    /**
+     * Init bootstrap
+     *
+     * @throws Throwable
+     */
+    @Override
+    protected void doConnect() throws Throwable {
+        InetSocketAddress socketAddress = new InetSocketAddress("127.0.0.1", 8082);
+        netVertxVerticle.connect(socketAddress.getPort(),socketAddress.getHostString());
+        DefaultChannelHandler channelHandler = new DefaultChannelHandler();
+        channelHandler.setChannel(this.getChannel());
+        netVertxVerticle.setChannelHandler(channelHandler);
     }
 
+    @Override
+    protected void doClose() throws Throwable {
+        netVertxVerticle.getNetSocket().close();
+    }
+
+    @Override
+    protected void doDisConnect() throws Throwable {
+        try {
+            VertxChannel.removeChannelIfDisconnected(netVertxVerticle);
+        } catch (Throwable t) {
+            logger.warn(t.getMessage());
+        }
+    }
+
+    @Override
+    protected Channel getChannel(){
+        NetVertxVerticle c = netVertxVerticle;
+        if (c == null || !c.isConnected()) {
+            return null;
+        }
+        return VertxChannel.getOrAddChannel(c);
+    }
+
+    @Override
     public boolean isConnected() {
-        return connected;
+        return netVertxVerticle.isConnected();
     }
 
 }

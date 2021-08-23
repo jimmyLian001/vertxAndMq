@@ -28,10 +28,25 @@ public class VertxTcpMessage implements Serializable {
      * 消息唯一id
      */
     private String messageId;
-    /**
-     * 路由（总线地址）
-     */
-    private String route;
+
+    public String getRouteOrigin() {
+        return routeOrigin;
+    }
+
+    public void setRouteOrigin(String routeOrigin) {
+        this.routeOrigin = routeOrigin;
+    }
+
+    public String getRouteDestination() {
+        return routeDestination;
+    }
+
+    public void setRouteDestination(String routeDestination) {
+        this.routeDestination = routeDestination;
+    }
+
+    private String routeOrigin;
+    private String routeDestination;
     /**
      * TCP消息状态码
      */
@@ -77,14 +92,6 @@ public class VertxTcpMessage implements Serializable {
         this.messageId = messageId;
     }
 
-    public String getRoute() {
-        return route;
-    }
-
-    public void setRoute(String route) {
-        this.route = route;
-    }
-
     public String getCode() {
         return code;
     }
@@ -116,7 +123,8 @@ public class VertxTcpMessage implements Serializable {
                 + ",\"content\":" + content
                 + ",\"timeStamp\":" + timeStamp
                 + ",\"messageId\":\"" + messageId + '\"'
-                + ",\"route\":\"" + route + '\"'
+                + ",\"routeOrigin\":\"" + routeOrigin + '\"'
+                + ",\"routeDestination\":\"" + routeDestination + '\"'
                 + ",\"code\":\"" + code + '\"'
                 + ",\"side\":" + side
                 + ",\"socketId\":" + socketId

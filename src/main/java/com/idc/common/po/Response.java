@@ -32,7 +32,7 @@ public class Response {
     /**
      * channel inactive, directly return the unfinished requests.
      */
-    public static final byte CHANNEL_INACTIVE = 35;
+    public static final int CHANNEL_INACTIVE = 35;
 
     /**
      * request format error.
@@ -80,6 +80,25 @@ public class Response {
     private String errorMessage;
 
     private Object result;
+
+    public String getRouteOrigin() {
+        return routeOrigin;
+    }
+
+    public void setRouteOrigin(String routeOrigin) {
+        this.routeOrigin = routeOrigin;
+    }
+
+    public String getRouteDestination() {
+        return routeDestination;
+    }
+
+    public void setRouteDestination(String routeDestination) {
+        this.routeDestination = routeDestination;
+    }
+
+    private String routeOrigin;
+    private String routeDestination;
 
     private boolean heartbeat ;
 

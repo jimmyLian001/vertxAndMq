@@ -1,6 +1,6 @@
 package com.idc.common.vertx.gate;
 
-import com.idc.common.vertx.gate.client.NetVertxClient;
+import com.idc.common.vertx.gate.client.NetVertxVerticle;
 import com.idc.common.vertx.gate.server.NetVertxServer;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
@@ -25,14 +25,14 @@ public class GateTest {
     @Autowired
     private NetVertxServer netVertxServer;
     @Autowired
-    private NetVertxClient netVertxClient;
+    private NetVertxVerticle netVertxVerticle;
 
     @PostConstruct
     public  void GateTest() throws Exception{
         log.info("Tcp Verticle Demo start");
         Vertx.vertx().deployVerticle(netVertxServer);
         Thread.sleep(2000L);
-        Vertx.vertx().deployVerticle(netVertxClient);
+        Vertx.vertx().deployVerticle(netVertxVerticle);
         log.info("Tcp Verticle Demo end");
     }
 }
