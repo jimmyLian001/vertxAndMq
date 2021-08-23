@@ -35,9 +35,9 @@ public class GateTest {
     public void GateTest() throws Exception {
         log.info("TexchangeDelegate.initExchangeServer Demo start");
         RemoteAddress serverAddress = new RemoteAddress("127.0.0.1", 8082);
-        exchangeDelegate.initExchangeServer(serverAddress);
-        Thread.sleep(3000);
-//        exchangeDelegate.initExchangeClient(serverAddress);
+    /*    exchangeDelegate.initExchangeServer(serverAddress);
+        Thread.sleep(3000);*/
+        exchangeDelegate.initExchangeClient(serverAddress);
         log.info("exchangeDelegate.initExchangeServer Demo end");
         AddressPo addressPo = new AddressPo();
         addressPo.setName("zidan.lian");
