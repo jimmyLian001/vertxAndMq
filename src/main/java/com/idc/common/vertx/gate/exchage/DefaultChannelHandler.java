@@ -1,9 +1,13 @@
 package com.idc.common.vertx.gate.exchage;
 
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
+import com.idc.common.po.VertxMessageReq;
+import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.common.DefaultFuture;
 import com.idc.common.vertx.gate.common.Request;
+import com.idc.common.vertx.gate.common.VertxTcpMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,25 +27,39 @@ public class DefaultChannelHandler implements ChannelHandler {
 
     private final ChannelHandler handler;
 
+    public ClusteredVertxServer getClusteredVertxServer() {
+        return clusteredVertxServer;
+    }
+
+    @Override
+    public void setClusteredVertxServer(ClusteredVertxServer clusteredVertxServer) {
+        this.clusteredVertxServer = clusteredVertxServer;
+    }
+
+    private ClusteredVertxServer clusteredVertxServer;
+
     @Override
     public Channel getChannel() {
         return channel;
     }
 
+    @Override
     public void setChannel(Channel channel) {
         this.channel = channel;
     }
 
-    private  Channel channel;
+    private Channel channel;
 
     public DefaultChannelHandler() {
         this.handler = this;
+        clusteredVertxServer = new ClusteredVertxServer();
     }
 
     public DefaultChannelHandler(ChannelHandler handler) {
         if (handler == null) {
             throw new IllegalArgumentException("handler == null");
         }
+        clusteredVertxServer = new ClusteredVertxServer();
         this.handler = handler;
     }
 
@@ -58,25 +76,14 @@ public class DefaultChannelHandler implements ChannelHandler {
     void handleRequest(final ExchangeChannel channel, Request req) throws RpcException {
         Response res = new Response(req.getId());
         // find handler by message class.
-        Object msg = req.getData();
         try {
-            CompletionStage<Object> future = null;//handler.reply(channel, msg);
-            future.whenComplete((appResult, t) -> {
-                try {
-                    if (t == null) {
-                        res.setStatus(Response.OK);
-                        res.setResult(appResult);
-                    } else {
-                        res.setStatus(Response.SERVICE_ERROR);
-                        res.setErrorMessage(t.getMessage());
-                    }
-                    channel.send(res);
-                } catch (RpcException e) {
-                    logger.warn("Send result to consumer failed, channel is " + channel + ", msg is " + e);
-                } finally {
-                    // HeaderExchangeChannel.removeChannelIfDisconnected(channel);
-                }
-            });
+            VertxMessageReq vertxMessageReq = new VertxMessageReq();
+            vertxMessageReq.setTimeStamp(System.currentTimeMillis());
+            vertxMessageReq.setContent(req.getData());
+            vertxMessageReq.setSide(1);
+            vertxMessageReq.setInvocation(req.getInvocation());
+            AppResponse appResponse = clusteredVertxServer.sendMessageToEventBusSyn(req.getRouteDestination(), vertxMessageReq, 30 * 1000);
+            channel.send(appResponse);
         } catch (Throwable e) {
             res.setStatus(Response.SERVICE_ERROR);
             res.setErrorMessage(e.getMessage());

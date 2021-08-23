@@ -1,13 +1,18 @@
 package com.idc.common.vertx.eventbuscluster;
 
 import com.idc.common.annotation.VertxUrl;
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.Invoker;
+import com.idc.common.po.VertxMessageReq;
 import com.idc.common.util.NetworkUtil;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.JdkProxyFactory;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.ProxyFactory;
+import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.spi.cluster.zookeeper.ZookeeperClusterManager;
 import org.slf4j.Logger;
@@ -19,7 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 /**
  * @author lian zd
@@ -31,6 +36,7 @@ public class ClusteredVertxServer {
     private static ConcurrentHashMap<String, Invoker<Object>> invokerMap = new ConcurrentHashMap<>();
     private static final ProxyFactory proxyFactory = new JdkProxyFactory();
     private Vertx clusterVertx = null;
+    public static final ExecutorService executorService = new ThreadPoolExecutor(8, 16, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     /**
      * context
      */
@@ -72,6 +78,23 @@ public class ClusteredVertxServer {
             logger.error("initAndBuildInvoker proxy error:", e);
         }
 
+    }
+
+    public AppResponse sendMessageToEventBusSyn(String vertxEventBusName, VertxMessageReq vertxMessageReq, long timeOut) throws ExecutionException, InterruptedException {
+        CompletableFuture<AppResponse> future = new CompletableFuture<AppResponse>();
+        if (clusterVertx != null) {
+            vertxMessageReq.setTimeStamp(System.currentTimeMillis());
+            clusterVertx.eventBus().<JsonObject>send(vertxEventBusName, JsonObject.mapFrom(vertxMessageReq), new DeliveryOptions().setSendTimeout(timeOut), resultBody -> {
+                executorService.submit(new FeatureTask(resultBody, future));
+            });
+
+        } else {
+            AppResponse appResponse = new AppResponse();
+            appResponse.setValue("400");
+            appResponse.setException(new RpcException("Cluster Vertx has not init finished,please wait!"));
+            future.complete(appResponse);
+        }
+        return future.get();
     }
 
     public static Invoker<Object> getInvoker(String key) {

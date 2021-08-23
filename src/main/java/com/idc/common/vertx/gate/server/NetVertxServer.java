@@ -4,7 +4,6 @@ import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.exchage.Channel;
 import com.idc.common.vertx.gate.exchage.ChannelHandler;
-import com.idc.common.vertx.gate.exchage.DefaultChannelHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import org.slf4j.Logger;
@@ -28,9 +27,11 @@ public class NetVertxServer extends AbstractServer {
     private NetClient client;
     private boolean connected = Boolean.FALSE;
     private ServerVertxVerticle netVertxVerticle;
+    private ChannelHandler channelHandler;
 
     public NetVertxServer(ChannelHandler handler, RemoteAddress remoteAddress) throws RpcException {
         super(handler, remoteAddress);
+        this.channelHandler = handler;
     }
 
     /**
@@ -44,7 +45,6 @@ public class NetVertxServer extends AbstractServer {
         Vertx.vertx().deployVerticle(netVertxVerticle);
         netVertxVerticle.doOpen(8082);
         netVertxVerticle.connect();
-        DefaultChannelHandler channelHandler = new DefaultChannelHandler();
         channelHandler.setChannel(this.getChannel(new InetSocketAddress(8082)));
         netVertxVerticle.setChannelHandler(channelHandler);
     }

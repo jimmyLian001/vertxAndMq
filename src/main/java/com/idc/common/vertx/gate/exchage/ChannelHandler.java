@@ -1,5 +1,6 @@
 package com.idc.common.vertx.gate.exchage;
 
+import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 
 /**
@@ -51,4 +52,9 @@ public interface ChannelHandler {
     void caught(Channel channel, Throwable exception) throws RpcException;
 
     Channel getChannel();
+
+    void setChannel(Channel channel);
+
+    void setClusteredVertxServer(ClusteredVertxServer clusteredVertxServer);
+
 }

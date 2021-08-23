@@ -1,7 +1,9 @@
 package com.idc.common.vertx.gate.server;
 
 import com.alibaba.fastjson.JSON;
+import com.idc.common.po.Response;
 import com.idc.common.util.VertxMsgUtils;
+import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxTcpMessage;
 import com.idc.common.vertx.gate.exchage.ChannelHandler;
 import io.vertx.core.AbstractVerticle;
@@ -49,7 +51,6 @@ public class ServerVertxVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-
     }
 
     public NetServer doOpen(int port) {
@@ -68,8 +69,9 @@ public class ServerVertxVerticle extends AbstractVerticle {
                 SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
             } else {
                 // 其他信息，这里简单模拟一下，原样返回给客户端
-                SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
+//                SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
                 log.info("收到客户端消息socketId：{}，msgBody：{}", socketId, "msgBody mock");
+                received(vertxTcpMessage);
             }
         });
         NetServerOptions options = new NetServerOptions();
@@ -131,6 +133,15 @@ public class ServerVertxVerticle extends AbstractVerticle {
                 res.cause().printStackTrace();
             }
         });
+    }
+
+    private Request received(VertxTcpMessage message) {
+        Request request = (Request) message.getContent();
+        request.setData(message.getContent());
+        request.setRouteOrigin(message.getRouteOrigin());
+        request.setRouteDestination(message.getRouteDestination());
+        channelHandler.received(channelHandler.getChannel(), request);
+        return request;
     }
 
 

@@ -37,14 +37,14 @@ public class ClusterVertixDemo {
     @Autowired
     private ClusterVertxClient clusterVertxClient;
 
-    private String eventBusName = "vertx.cluster.replyHello";
+    private String eventBusName = "vertx.cluster.ConnectSvr";
 
-    //    @PostConstruct
+    @PostConstruct
     public void initServerCluster() throws Exception {
         clusteredVertxServer.setAndStart(eventBusName);
     }
 
-//    @PostConstruct
+    //    @PostConstruct
     public void initCluster() throws Exception {
         clusterVertxClient.setAndStart();
         VertxMessageReq vertxMessageReq = new VertxMessageReq();
