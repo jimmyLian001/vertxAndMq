@@ -2,8 +2,10 @@ package com.idc.common.vertx.gate;
 
 import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
+import com.idc.common.po.RpcInvocation;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.common.Request;
+import com.idc.common.vertx.gate.common.VertxRouter;
 import com.idc.common.vertx.gate.exchage.ExchangeClient;
 import com.idc.common.vertx.gate.exchage.ExchangeServer;
 import com.idc.common.vertx.gate.exchage.HeadExchanger;
@@ -62,15 +64,23 @@ public class RemoteExchangeDelegate {
     }
 
 
-    public AppResponse request(Object object, RemoteAddress address) {
+    public AppResponse request(Object object, RemoteAddress address, VertxRouter vertxRouter, RpcInvocation invocation) {
         AppResponse appResponse = new AppResponse();
+        appResponse.setRouteOrigin(vertxRouter.getRouteOrigin());
+        appResponse.setRouteDestination(vertxRouter.getRouteDestination());
         try {
             ExchangeClient exchangeClient = clientMap.get(address);
             if (exchangeClient != null) {
                 Request request = new Request();
                 request.setData(object);
+                request.setRouteDestination(vertxRouter.getRouteDestination());
+                request.setRouteOrigin(vertxRouter.getRouteOrigin());
+//                request.setI
                 CompletableFuture<Object> requestFuture = exchangeClient.request(request);
-                return (AppResponse) requestFuture.get();
+                Response response = (Response) requestFuture.get();
+                appResponse.setStatus(response.getStatus());
+                appResponse.setValue(response.getResult());
+                appResponse.setErrorMessage(response.getErrorMessage());
             } else {
                 appResponse.setStatus(Response.CHANNEL_INACTIVE);
                 appResponse.setErrorMessage("remote channel has not init");

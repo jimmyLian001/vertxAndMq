@@ -88,7 +88,7 @@ public class HeaderExchangeChannel implements ExchangeChannel {
             throw new RpcException("Failed to send request " + request + ", cause: The channel " + this + " is closed!");
         }
         // create request.
-        Request req = new Request();
+        Request req = (Request) request;
         DefaultFuture future = DefaultFuture.newFuture(channel, req, timeout);
         try {
             channel.send(req);

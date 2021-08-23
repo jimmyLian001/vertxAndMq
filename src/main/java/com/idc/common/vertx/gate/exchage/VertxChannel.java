@@ -83,8 +83,14 @@ public class VertxChannel extends AbstractChannel {
 
     @Override
     public InetSocketAddress getRemoteAddress() {
-        SocketAddress socketAddress = channel.getNetSocket().remoteAddress();
-        return new InetSocketAddress(socketAddress.host(),socketAddress.port());
+        if (channel.getNetSocket() != null) {
+            SocketAddress socketAddress = channel.getNetSocket().remoteAddress();
+            return new InetSocketAddress(socketAddress.host(), socketAddress.port());
+        } else {
+            //TODO socket
+            return null;
+        }
+
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxTcpMessage;
 import com.idc.common.vertx.gate.exchage.ChannelHandler;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
@@ -30,6 +31,7 @@ public class NetVertxVerticle extends AbstractVerticle {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private String socketId;
+    private Vertx vertx;
 
     public void setChannelHandler(ChannelHandler channelHandler) {
         this.channelHandler = channelHandler;
@@ -37,7 +39,8 @@ public class NetVertxVerticle extends AbstractVerticle {
 
     private ChannelHandler channelHandler;
 
-    public NetVertxVerticle() {
+    public NetVertxVerticle(Vertx vertx) {
+        this.vertx = vertx;
     }
 
 

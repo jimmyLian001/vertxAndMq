@@ -33,8 +33,9 @@ public class NetVertxClient extends AbstractClient {
      */
     @Override
     protected void doOpen() throws Throwable {
-        netVertxVerticle = new NetVertxVerticle();
-        Vertx.vertx().deployVerticle(netVertxVerticle);
+        Vertx vertx = Vertx.vertx();
+        netVertxVerticle = new NetVertxVerticle(vertx);
+        vertx.deployVerticle(netVertxVerticle);
     }    /**
      * Init bootstrap
      *

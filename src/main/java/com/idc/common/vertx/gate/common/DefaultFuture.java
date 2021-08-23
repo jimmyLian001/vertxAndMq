@@ -48,7 +48,7 @@ public class DefaultFuture extends CompletableFuture<Object> {
         this.channel = channel;
         this.request = request;
         this.id = request.getId();
-        this.timeout = timeout > 0 ? timeout : 30*1000;
+        this.timeout = timeout > 0 ? timeout : 30 * 1000;
         // put into waiting map.
         FUTURES.put(id, this);
         CHANNELS.put(id, channel);
@@ -163,13 +163,7 @@ public class DefaultFuture extends CompletableFuture<Object> {
         if (res == null) {
             throw new IllegalStateException("response cannot be null");
         }
-        if (res.getStatus() == Response.OK) {
-            this.complete(res.getResult());
-        } else if (res.getStatus() == Response.CLIENT_TIMEOUT || res.getStatus() == Response.SERVER_TIMEOUT) {
-            this.completeExceptionally(new RpcException("time out"));
-        } else {
-            this.completeExceptionally(new RpcException(res.getErrorMessage()));
-        }
+        this.complete(res);
     }
 
     private long getId() {

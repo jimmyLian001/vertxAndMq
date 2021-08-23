@@ -161,7 +161,7 @@ public abstract class AbstractClient implements Client {
             throw e;
 
         } catch (Throwable e) {
-            throw new RpcException("Failed connect to server " + getRemoteAddress() + " from " + getClass().getSimpleName() + " "
+            throw new RpcException("Failed connect to server " + " from " + getClass().getSimpleName() + " "
                     + ", cause: " + e.getMessage(), e);
 
         } finally {

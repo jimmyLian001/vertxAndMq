@@ -55,6 +55,25 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
         this.exception = exception;
     }
 
+
+    public String getRouteOrigin() {
+        return routeOrigin;
+    }
+
+    public void setRouteOrigin(String routeOrigin) {
+        this.routeOrigin = routeOrigin;
+    }
+
+    public String getRouteDestination() {
+        return routeDestination;
+    }
+
+    public void setRouteDestination(String routeDestination) {
+        this.routeDestination = routeDestination;
+    }
+
+    private String routeOrigin;
+    private String routeDestination;
     @Override
     public Object recreate() throws Throwable {
         if (exception != null) {
@@ -157,6 +176,14 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
 
     @Override
     public String toString() {
-        return "AppResponse [value=" + result + ", exception=" + exception + "]";
+        return "AppResponse{" +
+                "result=" + result +
+                ", exception=" + exception +
+                ", status=" + status +
+                ", errorMessage='" + errorMessage + '\'' +
+                ", attachments=" + attachments +
+                ", routeOrigin='" + routeOrigin + '\'' +
+                ", routeDestination='" + routeDestination + '\'' +
+                '}';
     }
 }
