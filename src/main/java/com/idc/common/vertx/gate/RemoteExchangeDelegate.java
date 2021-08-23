@@ -45,6 +45,7 @@ public class RemoteExchangeDelegate {
 
 
     public ExchangeServer initExchangeServer(RemoteAddress address) {
+        headExchanger.init();
         if (exchangeServer == null) {
             synchronized (this) {
                 if (exchangeServer == null) {

@@ -1,9 +1,12 @@
 package com.idc.common.vertx.gate.exchage;
 
+import com.idc.common.vertx.eventbuscluster.ClusterVertxClient;
+import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.client.Client;
 import com.idc.common.vertx.gate.client.NetVertxClient;
 import com.idc.common.vertx.gate.client.NettyClient;
+import com.idc.common.vertx.gate.common.Const;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.server.NetVertxServer;
 import com.idc.common.vertx.gate.server.Server;
@@ -19,10 +22,19 @@ import com.idc.common.vertx.gate.server.Server;
 public class HeadExchanger implements Exchanger {
 
     public static final String NAME = "header";
+    private ChannelHandler channelHandler = new DefaultChannelHandler();
+
+
+    public void init() {
+        ClusteredVertxServer clusteredVertxServer = new ClusteredVertxServer();
+        clusteredVertxServer.setAndStart(Const.eventBusPre + "SorGate");
+        channelHandler.setClusteredVertxServer(clusteredVertxServer);
+    }
+
 
     @Override
     public ExchangeClient connect(RemoteAddress address) throws RpcException {
-        Client client = new NetVertxClient();
+        Client client = new NetVertxClient(channelHandler);
         if (address.getProtocol() == 0) {
             client = new NettyClient();
         }
@@ -31,7 +43,7 @@ public class HeadExchanger implements Exchanger {
 
     @Override
     public ExchangeServer bound(RemoteAddress address) {
-        Server server = new NetVertxServer(new DefaultChannelHandler(), address);
+        Server server = new NetVertxServer(channelHandler, address);
         return new HeaderExchangeServer(server);
     }
 }

@@ -1,6 +1,7 @@
 package com.idc.common.vertx.gate.client;
 
 import com.idc.common.vertx.gate.exchage.Channel;
+import com.idc.common.vertx.gate.exchage.ChannelHandler;
 import com.idc.common.vertx.gate.exchage.DefaultChannelHandler;
 import com.idc.common.vertx.gate.exchage.VertxChannel;
 import io.vertx.core.Vertx;
@@ -25,6 +26,11 @@ public class NetVertxClient extends AbstractClient {
     private NetClient client;
     private boolean connected = Boolean.FALSE;
     private NetVertxVerticle netVertxVerticle;
+    private ChannelHandler channelHandler;
+
+    public NetVertxClient(ChannelHandler channelHandler) {
+        this.channelHandler = channelHandler;
+    }
 
     /**
      * Init bootstrap
@@ -44,9 +50,7 @@ public class NetVertxClient extends AbstractClient {
     @Override
     protected void doConnect() throws Throwable {
         InetSocketAddress socketAddress = new InetSocketAddress("127.0.0.1", 8082);
-        netVertxVerticle.connect(socketAddress.getPort(),socketAddress.getHostString());
-        DefaultChannelHandler channelHandler = new DefaultChannelHandler();
-        channelHandler.setChannel(this.getChannel());
+        netVertxVerticle.connect(socketAddress.getPort(), socketAddress.getHostString());
         netVertxVerticle.setChannelHandler(channelHandler);
     }
 
@@ -65,7 +69,7 @@ public class NetVertxClient extends AbstractClient {
     }
 
     @Override
-    protected Channel getChannel(){
+    protected Channel getChannel() {
         NetVertxVerticle c = netVertxVerticle;
         if (c == null || !c.isConnected()) {
             return null;

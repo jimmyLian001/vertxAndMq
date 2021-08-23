@@ -1,5 +1,7 @@
 package com.idc.common.vertx.gate.common;
 
+import com.idc.common.po.RpcInvocation;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -16,6 +18,7 @@ public class Request {
 
     private Object data;
 
+    private RpcInvocation invocation;
 
     public String getRouteOrigin() {
         return routeOrigin;
@@ -64,5 +67,13 @@ public class Request {
 
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public RpcInvocation getInvocation() {
+        return invocation;
+    }
+
+    public void setInvocation(RpcInvocation invocation) {
+        this.invocation = invocation;
     }
 }

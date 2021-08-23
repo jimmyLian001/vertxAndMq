@@ -67,38 +67,6 @@ public class ClusterVertxClient {
         return future.get();
     }
 
-
-    public static class FeatureTask implements Runnable {
-        private AsyncResult<Message<JsonObject>> asyncResult;
-        private CompletableFuture<AppResponse> future;
-
-        public FeatureTask(AsyncResult<Message<JsonObject>> asyncResult, CompletableFuture<AppResponse> future) {
-            this.asyncResult = asyncResult;
-            this.future = future;
-        }
-
-        @Override
-        public void run() {
-            AppResponse appResponse = new AppResponse();
-            try {
-                if (asyncResult.failed()) {
-                    appResponse.setException(asyncResult.cause());
-                    appResponse.setValue("vertx request error");
-                    appResponse.setErrorMessage(asyncResult.cause().getMessage());
-                } else {
-                    appResponse = JSON.parseObject(asyncResult.result().body().encode(), AppResponse.class);
-                }
-            } catch (Exception e) {
-                appResponse.setException(e);
-                appResponse.setValue("vertx handle response error");
-                logger.error("FeatureTask run error");
-            }
-            future.complete(appResponse);
-
-
-        }
-    }
-
     /**
      * say hello
      *
