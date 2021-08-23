@@ -12,4 +12,6 @@ import com.idc.common.vertx.gate.common.RemoteAddress;
  */
 public interface Exchanger {
     ExchangeClient connect(RemoteAddress address);
+
+    ExchangeServer bound(RemoteAddress address);
 }

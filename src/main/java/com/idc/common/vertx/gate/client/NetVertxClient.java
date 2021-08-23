@@ -7,7 +7,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
 
@@ -19,7 +18,6 @@ import java.net.InetSocketAddress;
  * @version : Version:1.0.0
  * @date : 2021/5/7 ProjectName: vertxDemo
  */
-@Component
 public class NetVertxClient extends AbstractClient {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());

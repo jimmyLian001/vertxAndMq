@@ -5,12 +5,13 @@ import com.idc.common.po.Response;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.exchage.ExchangeClient;
+import com.idc.common.vertx.gate.exchage.ExchangeServer;
 import com.idc.common.vertx.gate.exchage.HeadExchanger;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 
 /**
  * 描述：
@@ -20,9 +21,11 @@ import java.util.concurrent.ExecutionException;
  * @version : Version:1.0.0
  * @date : 2021/8/22 ProjectName: vertxAndMq
  */
+@Component
 public class RemoteExchangeDelegate {
 
     private Map<RemoteAddress, ExchangeClient> clientMap = new ConcurrentHashMap<>();
+    private ExchangeServer exchangeServer = null;
     private HeadExchanger headExchanger = new HeadExchanger();
 
     public ExchangeClient initExchangeClient(RemoteAddress address) {
@@ -38,8 +41,24 @@ public class RemoteExchangeDelegate {
         return exchangeClient;
     }
 
+
+    public ExchangeServer initExchangeServer(RemoteAddress address) {
+        if (exchangeServer == null) {
+            synchronized (this) {
+                if (exchangeServer == null) {
+                    exchangeServer = createServer(address);
+                }
+            }
+        }
+        return exchangeServer;
+    }
+
     private ExchangeClient createClient(RemoteAddress address) {
         return headExchanger.connect(address);
+    }
+
+    private ExchangeServer createServer(RemoteAddress address) {
+        return headExchanger.bound(address);
     }
 
 

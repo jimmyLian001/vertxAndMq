@@ -2,6 +2,7 @@ package com.idc.common.vertx.gate.exchage;
 
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.client.NetVertxVerticle;
+import io.vertx.core.net.SocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +83,8 @@ public class VertxChannel extends AbstractChannel {
 
     @Override
     public InetSocketAddress getRemoteAddress() {
-        return (InetSocketAddress) channel.getNetSocket().remoteAddress();
+        SocketAddress socketAddress = channel.getNetSocket().remoteAddress();
+        return new InetSocketAddress(socketAddress.host(),socketAddress.port());
     }
 
     @Override
@@ -215,6 +217,6 @@ public class VertxChannel extends AbstractChannel {
 
     @Override
     public String toString() {
-        return "NettyChannel [channel=" + channel + "]";
+        return "VertxChannel [channel=" + channel + "]";
     }
 }

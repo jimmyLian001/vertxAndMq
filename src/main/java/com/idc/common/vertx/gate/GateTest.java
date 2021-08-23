@@ -1,7 +1,7 @@
 package com.idc.common.vertx.gate;
 
 import com.idc.common.vertx.gate.client.NetVertxVerticle;
-import com.idc.common.vertx.gate.server.NetVertxServer;
+import com.idc.common.vertx.gate.common.RemoteAddress;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,16 +23,15 @@ public class GateTest {
     private static final Logger log = LoggerFactory.getLogger(GateTest.class);
 
     @Autowired
-    private NetVertxServer netVertxServer;
-    @Autowired
-    private NetVertxVerticle netVertxVerticle;
+    private RemoteExchangeDelegate exchangeDelegate;
 
     @PostConstruct
-    public  void GateTest() throws Exception{
-        log.info("Tcp Verticle Demo start");
-        Vertx.vertx().deployVerticle(netVertxServer);
-        Thread.sleep(2000L);
-        Vertx.vertx().deployVerticle(netVertxVerticle);
-        log.info("Tcp Verticle Demo end");
+    public void GateTest() throws Exception {
+        log.info("TexchangeDelegate.initExchangeServer Demo start");
+        RemoteAddress serverAddress = new RemoteAddress("127.0.0.1", 8082);
+        exchangeDelegate.initExchangeServer(serverAddress);
+        Thread.sleep(3000);
+        exchangeDelegate.initExchangeClient(serverAddress);
+        log.info("exchangeDelegate.initExchangeServer Demo end");
     }
 }

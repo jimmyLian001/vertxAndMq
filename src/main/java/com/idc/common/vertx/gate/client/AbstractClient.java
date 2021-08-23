@@ -58,7 +58,7 @@ public abstract class AbstractClient implements Client {
     public InetSocketAddress getRemoteAddress() {
         Channel channel = getChannel();
         if (channel == null) {
-//            return getUrl().toInetSocketAddress();
+            return new InetSocketAddress("127.0.0.1", 8082);
         }
         return channel.getRemoteAddress();
     }
@@ -206,7 +206,7 @@ public abstract class AbstractClient implements Client {
     }
 
     @Override
-    public boolean isClosed(){
+    public boolean isClosed() {
         //TODO
         return false;
     }

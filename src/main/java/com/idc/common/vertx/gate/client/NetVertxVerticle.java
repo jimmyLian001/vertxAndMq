@@ -74,6 +74,8 @@ public class NetVertxVerticle extends AbstractVerticle {
                 }
             }
         });
+        //TODO connected
+        connected = Boolean.TRUE;
         client.connect(port, host, conn -> {
             if (conn.succeeded()) {
                 log.info("client ok");

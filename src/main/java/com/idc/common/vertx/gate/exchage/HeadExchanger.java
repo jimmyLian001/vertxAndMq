@@ -5,6 +5,8 @@ import com.idc.common.vertx.gate.client.Client;
 import com.idc.common.vertx.gate.client.NetVertxClient;
 import com.idc.common.vertx.gate.client.NettyClient;
 import com.idc.common.vertx.gate.common.RemoteAddress;
+import com.idc.common.vertx.gate.server.NetVertxServer;
+import com.idc.common.vertx.gate.server.Server;
 
 /**
  * 描述：
@@ -25,5 +27,11 @@ public class HeadExchanger implements Exchanger {
             client = new NettyClient();
         }
         return new HeaderExchangeClient(client, true);
+    }
+
+    @Override
+    public ExchangeServer bound(RemoteAddress address) {
+        Server server = new NetVertxServer(new DefaultChannelHandler(), address);
+        return new HeaderExchangeServer(server);
     }
 }
