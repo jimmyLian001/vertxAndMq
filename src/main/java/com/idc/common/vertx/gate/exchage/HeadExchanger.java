@@ -25,9 +25,9 @@ public class HeadExchanger implements Exchanger {
     private ChannelHandler channelHandler = new DefaultChannelHandler();
 
 
-    public void init() {
+    public void init(String gateName) {
         ClusteredVertxServer clusteredVertxServer = new ClusteredVertxServer();
-        clusteredVertxServer.setAndStart(Const.eventBusPre + "SorGate");
+        clusteredVertxServer.setAndStart(Const.eventBusPre + gateName);
         channelHandler.setClusteredVertxServer(clusteredVertxServer);
     }
 

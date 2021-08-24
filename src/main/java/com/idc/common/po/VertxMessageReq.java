@@ -11,6 +11,7 @@ package com.idc.common.po;
 public class VertxMessageReq {
 
     private RpcInvocation invocation;
+    private RpcInvocation invocationRemote;
     private long timeStamp;
 
     private Object content;
@@ -25,6 +26,26 @@ public class VertxMessageReq {
      * 1：请求，2返回
      */
     private String code;
+
+
+    public String getRouteOrigin() {
+        return routeOrigin;
+    }
+
+    public void setRouteOrigin(String routeOrigin) {
+        this.routeOrigin = routeOrigin;
+    }
+
+    public String getRouteDestination() {
+        return routeDestination;
+    }
+
+    public void setRouteDestination(String routeDestination) {
+        this.routeDestination = routeDestination;
+    }
+
+    private String routeOrigin;
+    private String routeDestination;
 
     public RpcInvocation getInvocation() {
         return invocation;
@@ -81,7 +102,13 @@ public class VertxMessageReq {
     public void setCode(String code) {
         this.code = code;
     }
+    public RpcInvocation getInvocationRemote() {
+        return invocationRemote;
+    }
 
+    public void setInvocationRemote(RpcInvocation invocationRemote) {
+        this.invocationRemote = invocationRemote;
+    }
 
     @Override
     public String toString() {
@@ -95,6 +122,9 @@ public class VertxMessageReq {
                 + ",\"sequence\":" + sequence
                 + ",\"result\":" + result
                 + ",\"code\":" + code
+                + ",\"routeOrigin\":" + routeOrigin
+                + ",\"routeDestination\":" + routeDestination
+                + ",\"invocationRemote\":" + invocationRemote
                 + "}}";
 
     }

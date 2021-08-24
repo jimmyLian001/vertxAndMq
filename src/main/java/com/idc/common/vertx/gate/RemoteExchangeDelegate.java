@@ -31,6 +31,7 @@ public class RemoteExchangeDelegate {
     private HeadExchanger headExchanger = new HeadExchanger();
 
     public ExchangeClient initExchangeClient(RemoteAddress address) {
+        headExchanger.init("BrokerGate");
         ExchangeClient exchangeClient = clientMap.get(address);
         if (exchangeClient == null) {
             synchronized (this) {
@@ -45,7 +46,7 @@ public class RemoteExchangeDelegate {
 
 
     public ExchangeServer initExchangeServer(RemoteAddress address) {
-        headExchanger.init();
+        headExchanger.init("SorGate");
         if (exchangeServer == null) {
             synchronized (this) {
                 if (exchangeServer == null) {
@@ -76,7 +77,7 @@ public class RemoteExchangeDelegate {
                 request.setData(object);
                 request.setRouteDestination(vertxRouter.getRouteDestination());
                 request.setRouteOrigin(vertxRouter.getRouteOrigin());
-//                request.setI
+                request.setInvocation(invocation);
                 CompletableFuture<Object> requestFuture = exchangeClient.request(request);
                 Response response = (Response) requestFuture.get();
                 appResponse.setStatus(response.getStatus());
