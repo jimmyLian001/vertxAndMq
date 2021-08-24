@@ -2,10 +2,9 @@ package com.idc.common.vertx.eventbuscluster;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.util.TypeUtils;
-import com.idc.common.po.AddressPo;
-import com.idc.common.po.AppResponse;
-import com.idc.common.po.Response;
-import com.idc.common.po.VertxMessageReq;
+import com.idc.common.po.*;
+import com.idc.common.util.VertxMsgUtils;
+import com.idc.common.vertx.gate.common.Const;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
@@ -102,6 +101,36 @@ public class ClusterVertixDemo {
             logger.info("address info update result:{},时间差:{}", addressUpdateResult1, System.currentTimeMillis() - start);
 
 
+        }
+    }
+
+    //    @PostConstruct
+    public void initGateClient() throws Exception {
+        clusterVertxClient.setAndStart();
+        VertxMessageReq vertxMessageReq = new VertxMessageReq();
+        vertxMessageReq.setTimeStamp(System.currentTimeMillis());
+        vertxMessageReq.setContent("hello,this is from vertx event bus client");
+        vertxMessageReq.setSide(1);
+        vertxMessageReq.setSequence(201);
+        Thread.sleep(3000);
+        AddressPo addressPo = new AddressPo();
+        addressPo.setName("zidan.lian");
+        addressPo.setAddress("上海市浦东新区杨高南路759号陆家嘴世纪金融广场2号楼16楼");
+        addressPo.setUserId("0790");
+        addressPo.setTel("13127933306");
+        vertxMessageReq.setContent(addressPo);
+        vertxMessageReq.setSequence(203);
+        RpcInvocation invocationRemote = new RpcInvocation();
+        invocationRemote.setInterfaceName("userAddressInfo");
+        invocationRemote.setResource("default");
+        invocationRemote.setMethodName("updateAddress");
+        vertxMessageReq.setInvocationRemote(invocationRemote);
+        vertxMessageReq.setInvocation(VertxMsgUtils.getGateClientInvocation());
+        AppResponse addressUpdateResult = clusterVertxClient.sendMessageToEventBusSyn(Const.eventBusPre + "BrokerGate", vertxMessageReq, 60);
+        logger.info("address info update result:{}", addressUpdateResult.getValue());
+        if (!addressUpdateResult.hasException() && addressUpdateResult.getStatus() == Response.OK) {
+            AddressPo addressResult = TypeUtils.castToJavaBean(addressUpdateResult.getValue(), AddressPo.class);
+            System.out.println(addressResult);
         }
     }
 

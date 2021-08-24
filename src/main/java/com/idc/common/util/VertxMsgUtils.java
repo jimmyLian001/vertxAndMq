@@ -1,6 +1,8 @@
 package com.idc.common.util;
 
 import com.alibaba.fastjson.JSON;
+import com.idc.common.po.Invocation;
+import com.idc.common.po.RpcInvocation;
 
 /**
  * 描述：
@@ -20,6 +22,20 @@ public final class VertxMsgUtils {
 
     public static String joinMsg(Object body) {
         return JSON.toJSONString(body) + "idcEnd";
+    }
+
+    public static RpcInvocation getGateServerInvocation(){
+        RpcInvocation invocation = new RpcInvocation();
+        invocation.setInterfaceName("ServerGateBusTransfer");
+        invocation.setMethodName("transfer");
+        return invocation;
+    }
+
+    public static RpcInvocation getGateClientInvocation(){
+        RpcInvocation invocation = new RpcInvocation();
+        invocation.setInterfaceName("ClientGateBusTransfer");
+        invocation.setMethodName("transfer");
+        return invocation;
     }
 
 }

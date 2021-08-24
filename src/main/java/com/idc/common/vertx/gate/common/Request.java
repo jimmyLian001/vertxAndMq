@@ -19,6 +19,7 @@ public class Request {
     private Object data;
 
     private RpcInvocation invocation;
+    private RpcInvocation invocationRemote;
 
     public String getRouteOrigin() {
         return routeOrigin;
@@ -75,5 +76,13 @@ public class Request {
 
     public void setInvocation(RpcInvocation invocation) {
         this.invocation = invocation;
+    }
+
+    public RpcInvocation getInvocationRemote() {
+        return invocationRemote;
+    }
+
+    public void setInvocationRemote(RpcInvocation invocationRemote) {
+        this.invocationRemote = invocationRemote;
     }
 }

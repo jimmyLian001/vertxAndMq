@@ -3,6 +3,7 @@ package com.idc.common.vertx.gate;
 import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
 import com.idc.common.po.RpcInvocation;
+import com.idc.common.util.VertxMsgUtils;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxRouter;
@@ -78,6 +79,7 @@ public class RemoteExchangeDelegate {
                 request.setRouteDestination(vertxRouter.getRouteDestination());
                 request.setRouteOrigin(vertxRouter.getRouteOrigin());
                 request.setInvocation(invocation);
+                request.setInvocationRemote(VertxMsgUtils.getGateServerInvocation());
                 CompletableFuture<Object> requestFuture = exchangeClient.request(request);
                 Response response = (Response) requestFuture.get();
                 appResponse.setStatus(response.getStatus());

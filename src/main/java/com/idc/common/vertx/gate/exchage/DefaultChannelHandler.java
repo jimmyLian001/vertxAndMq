@@ -81,9 +81,10 @@ public class DefaultChannelHandler implements ChannelHandler {
             vertxMessageReq.setTimeStamp(System.currentTimeMillis());
             vertxMessageReq.setContent(req.getData());
             vertxMessageReq.setSide(1);
-            vertxMessageReq.setInvocation(req.getInvocation());
+            vertxMessageReq.setInvocation(req.getInvocationRemote());
             AppResponse appResponse = clusteredVertxServer.sendMessageToEventBusSyn(req.getRouteDestination(), vertxMessageReq, 30 * 1000);
-            channel.send(appResponse);
+            res.setResult(appResponse);
+            channel.send(res);
         } catch (Throwable e) {
             res.setStatus(Response.SERVICE_ERROR);
             res.setErrorMessage(e.getMessage());
