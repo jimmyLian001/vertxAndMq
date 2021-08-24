@@ -1,6 +1,5 @@
 package com.idc.common.vertx.gate.exchage;
 
-import com.idc.common.vertx.eventbuscluster.ClusterVertxClient;
 import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.client.Client;
@@ -23,10 +22,13 @@ public class HeadExchanger implements Exchanger {
 
     public static final String NAME = "header";
     private ChannelHandler channelHandler = new DefaultChannelHandler();
+    private ClusteredVertxServer clusteredVertxServer;
 
+    public HeadExchanger(ClusteredVertxServer clusteredVertxServer) {
+        this.clusteredVertxServer = clusteredVertxServer;
+    }
 
     public void init(String gateName) {
-        ClusteredVertxServer clusteredVertxServer = new ClusteredVertxServer();
         clusteredVertxServer.setAndStart(Const.eventBusPre + gateName);
         channelHandler.setClusteredVertxServer(clusteredVertxServer);
     }

@@ -27,11 +27,9 @@ public class NetVertxServer extends AbstractServer {
     private NetClient client;
     private boolean connected = Boolean.FALSE;
     private ServerVertxVerticle netVertxVerticle;
-    private ChannelHandler channelHandler;
 
     public NetVertxServer(ChannelHandler handler, RemoteAddress remoteAddress) throws RpcException {
         super(handler, remoteAddress);
-        this.channelHandler = handler;
     }
 
     /**

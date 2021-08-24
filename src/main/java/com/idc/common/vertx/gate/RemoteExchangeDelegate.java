@@ -4,12 +4,14 @@ import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
 import com.idc.common.po.RpcInvocation;
 import com.idc.common.util.VertxMsgUtils;
+import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxRouter;
 import com.idc.common.vertx.gate.exchage.ExchangeClient;
 import com.idc.common.vertx.gate.exchage.ExchangeServer;
 import com.idc.common.vertx.gate.exchage.HeadExchanger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -29,9 +31,14 @@ public class RemoteExchangeDelegate {
 
     private Map<RemoteAddress, ExchangeClient> clientMap = new ConcurrentHashMap<>();
     private ExchangeServer exchangeServer = null;
-    private HeadExchanger headExchanger = new HeadExchanger();
+    private HeadExchanger headExchanger;
+
+
+    @Autowired
+    private ClusteredVertxServer clusteredVertxServer;
 
     public ExchangeClient initExchangeClient(RemoteAddress address) {
+        headExchanger = new HeadExchanger(clusteredVertxServer);
         headExchanger.init("BrokerGate");
         ExchangeClient exchangeClient = clientMap.get(address);
         if (exchangeClient == null) {
@@ -47,6 +54,7 @@ public class RemoteExchangeDelegate {
 
 
     public ExchangeServer initExchangeServer(RemoteAddress address) {
+        headExchanger = new HeadExchanger(clusteredVertxServer);
         headExchanger.init("SorGate");
         if (exchangeServer == null) {
             synchronized (this) {
