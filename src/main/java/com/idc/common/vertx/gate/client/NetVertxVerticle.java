@@ -127,6 +127,7 @@ public class NetVertxVerticle extends AbstractVerticle {
         vertxTcpMessage.setContent(req.getData());
         vertxTcpMessage.setRouteOrigin(req.getRouteOrigin());
         vertxTcpMessage.setRouteDestination(req.getRouteDestination());
+        vertxTcpMessage.setInvocation(req.getInvocation());
         netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
     }
 
