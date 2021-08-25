@@ -54,6 +54,7 @@ public class NetVertxClient extends AbstractClient {
         InetSocketAddress socketAddress = new InetSocketAddress("127.0.0.1", 8082);
         netVertxVerticle.connect(socketAddress.getPort(), socketAddress.getHostString());
         netVertxVerticle.setChannelHandler(channelHandler);
+        channelHandler.setChannel(this.getChannel());
     }
 
     @Override

@@ -45,7 +45,10 @@ public class Request {
     public Request() {
         this.id = newId();
     }
-
+    /**
+     * socketAddress 仅网关tcp使用
+     */
+    private String socketAddress;
     public Request(long id) {
         this.id = id;
     }
@@ -84,5 +87,13 @@ public class Request {
 
     public void setInvocationRemote(RpcInvocation invocationRemote) {
         this.invocationRemote = invocationRemote;
+    }
+
+    public String getSocketAddress() {
+        return socketAddress;
+    }
+
+    public void setSocketAddress(String socketAddress) {
+        this.socketAddress = socketAddress;
     }
 }
