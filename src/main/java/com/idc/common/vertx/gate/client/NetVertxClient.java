@@ -26,10 +26,9 @@ public class NetVertxClient extends AbstractClient {
     private NetClient client;
     private boolean connected = Boolean.FALSE;
     private NetVertxVerticle netVertxVerticle;
-    private ChannelHandler channelHandler;
 
     public NetVertxClient(ChannelHandler channelHandler) {
-        this.channelHandler = channelHandler;
+        super(channelHandler);
     }
 
     /**
@@ -42,7 +41,10 @@ public class NetVertxClient extends AbstractClient {
         Vertx vertx = Vertx.vertx();
         netVertxVerticle = new NetVertxVerticle(vertx);
         vertx.deployVerticle(netVertxVerticle);
-    }    /**
+        netVertxVerticle.setChannelHandler(channelHandler);
+    }
+
+    /**
      * Init bootstrap
      *
      * @throws Throwable

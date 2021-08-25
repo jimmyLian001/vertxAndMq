@@ -2,6 +2,7 @@ package com.idc.common.vertx.gate.client;
 
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.exchage.Channel;
+import com.idc.common.vertx.gate.exchage.ChannelHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,11 @@ public abstract class AbstractClient implements Client {
     private final boolean needReconnect;
     protected volatile ExecutorService executor;
 
-    public AbstractClient() throws RpcException {
-        needReconnect = true;
+    protected ChannelHandler channelHandler;
 
+    public AbstractClient(ChannelHandler channelHandler) throws RpcException {
+        needReconnect = true;
+        this.channelHandler = channelHandler;
         try {
             doOpen();
         } catch (Throwable t) {

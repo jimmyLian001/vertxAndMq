@@ -26,10 +26,10 @@ public class ClientGateBusProcessImpl implements ClientGateBusProcess {
     private RemoteExchangeDelegate exchangeDelegate;
 
     @Override
-    public void transfer(VertxMessageReq params) {
+    public Object transfer(VertxMessageReq params) {
         //TODO loadBalance
-        logger.info("ClientGateBusTransfer receive:{}",params);
-        exchangeDelegate.request(params.getContent(), new RemoteAddress("127.0.0.1", 8082),
+        logger.info("ClientGateBusTransfer receive:{}", params);
+        return exchangeDelegate.request(params.getContent(), new RemoteAddress("127.0.0.1", 8082),
                 new VertxRouter(params.getRouteOrigin(), params.getRouteDestination()), params.getInvocationRemote());
     }
 }
