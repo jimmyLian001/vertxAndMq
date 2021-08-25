@@ -99,7 +99,7 @@ public class ClusterVertixDemo {
         }
     }
 
-    @PostConstruct
+    //    @PostConstruct
     public void initGateClient() throws Exception {
         clusterVertxClient.setAndStart();
         VertxMessageReq vertxMessageReq = new VertxMessageReq();
