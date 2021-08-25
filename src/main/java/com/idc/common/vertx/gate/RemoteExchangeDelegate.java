@@ -1,15 +1,18 @@
 package com.idc.common.vertx.gate;
 
+import com.alibaba.fastjson.util.TypeUtils;
 import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
 import com.idc.common.po.RpcInvocation;
 import com.idc.common.util.VertxMsgUtils;
+import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxRouter;
 import com.idc.common.vertx.gate.exchage.ExchangeClient;
 import com.idc.common.vertx.gate.exchage.ExchangeServer;
 import com.idc.common.vertx.gate.exchage.HeadExchanger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -29,9 +32,14 @@ public class RemoteExchangeDelegate {
 
     private Map<RemoteAddress, ExchangeClient> clientMap = new ConcurrentHashMap<>();
     private ExchangeServer exchangeServer = null;
-    private HeadExchanger headExchanger = new HeadExchanger();
+    private HeadExchanger headExchanger;
+
+
+    @Autowired
+    private ClusteredVertxServer clusteredVertxServer;
 
     public ExchangeClient initExchangeClient(RemoteAddress address) {
+        headExchanger = new HeadExchanger(clusteredVertxServer);
         headExchanger.init("BrokerGate");
         ExchangeClient exchangeClient = clientMap.get(address);
         if (exchangeClient == null) {
@@ -47,6 +55,7 @@ public class RemoteExchangeDelegate {
 
 
     public ExchangeServer initExchangeServer(RemoteAddress address) {
+        headExchanger = new HeadExchanger(clusteredVertxServer);
         headExchanger.init("SorGate");
         if (exchangeServer == null) {
             synchronized (this) {
@@ -82,9 +91,7 @@ public class RemoteExchangeDelegate {
                 request.setInvocationRemote(VertxMsgUtils.getGateServerInvocation());
                 CompletableFuture<Object> requestFuture = exchangeClient.request(request);
                 Response response = (Response) requestFuture.get();
-                appResponse.setStatus(response.getStatus());
-                appResponse.setValue(response.getResult());
-                appResponse.setErrorMessage(response.getErrorMessage());
+                appResponse = TypeUtils.castToJavaBean(response.getResult(), AppResponse.class);
             } else {
                 appResponse.setStatus(Response.CHANNEL_INACTIVE);
                 appResponse.setErrorMessage("remote channel has not init");

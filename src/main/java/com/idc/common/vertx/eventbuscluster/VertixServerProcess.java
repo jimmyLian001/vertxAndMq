@@ -44,7 +44,6 @@ public class VertixServerProcess implements Runnable {
                 try {
                     if (t == null) {
                         response = (AppResponse) appResult;
-                        response.setStatus(Response.OK);
                     } else {
                         response.setStatus(Response.SERVICE_ERROR);
                         response.setErrorMessage("处理失败：" + t.getMessage());

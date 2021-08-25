@@ -1,5 +1,7 @@
 package com.idc.common.vertx.gate.exchage;
 
+import com.idc.common.po.AppResponse;
+import com.idc.common.po.Response;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.common.DefaultFuture;
 import com.idc.common.vertx.gate.common.Request;
@@ -64,17 +66,12 @@ public class HeaderExchangeChannel implements ExchangeChannel {
         if (closed) {
             throw new RpcException("Failed to send message " + message + ", cause: The channel " + this + " is closed!");
         }
- /*       if (message instanceof Request
+        if (message instanceof Request
                 || message instanceof Response
+                || message instanceof AppResponse
                 || message instanceof String) {
             channel.send(message, sent);
-        } else {
-            Request request = new Request();
-            request.setVersion(Version.getProtocolVersion());
-            request.setTwoWay(false);
-            request.setData(message);
-            channel.send(request, sent);
-        }*/
+        }
     }
 
     @Override

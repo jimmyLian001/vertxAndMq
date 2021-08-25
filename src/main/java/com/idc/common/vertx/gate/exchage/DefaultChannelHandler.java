@@ -5,13 +5,14 @@ import com.idc.common.po.Response;
 import com.idc.common.po.VertxMessageReq;
 import com.idc.common.vertx.eventbuscluster.ClusteredVertxServer;
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
+import com.idc.common.vertx.gate.common.Const;
 import com.idc.common.vertx.gate.common.DefaultFuture;
+import com.idc.common.vertx.gate.common.HanderRequestTask;
 import com.idc.common.vertx.gate.common.Request;
-import com.idc.common.vertx.gate.common.VertxTcpMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 描述：
@@ -82,9 +83,9 @@ public class DefaultChannelHandler implements ChannelHandler {
             vertxMessageReq.setContent(req.getData());
             vertxMessageReq.setSide(1);
             vertxMessageReq.setInvocation(req.getInvocationRemote());
-            AppResponse appResponse = clusteredVertxServer.sendMessageToEventBusSyn(req.getRouteDestination(), vertxMessageReq, 30 * 1000);
-            res.setResult(appResponse);
-            channel.send(res);
+            CompletableFuture<AppResponse> appResponseCompletableFuture = clusteredVertxServer.sendMessageToEventBusAsn(
+                    Const.eventBusPre + req.getRouteDestination(), vertxMessageReq, 30 * 1000);
+            Const.executorService.submit(new HanderRequestTask(channel, appResponseCompletableFuture, req));
         } catch (Throwable e) {
             res.setStatus(Response.SERVICE_ERROR);
             res.setErrorMessage(e.getMessage());
@@ -157,6 +158,24 @@ public class DefaultChannelHandler implements ChannelHandler {
                 handleResponse(channel, (Response) message);
             } else if (message instanceof String) {
                 Exception e = new Exception("Dubbo client can not supported string message: " + message + " in channel: " + channel + ", url: ");
+                logger.error(e.getMessage(), e);
+            } else {
+                handler.received(exchangeChannel, message);
+            }
+        } finally {
+            HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+        }
+    }
+
+    @Override
+    public void receivedResult(Channel channel, Object message) throws RpcException {
+//        channel.setAttribute(KEY_READ_TIMESTAMP, System.currentTimeMillis());
+        final ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+        try {
+            if (message instanceof Response) {
+                handleResponse(channel, (Response) message);
+            } else if (message instanceof String) {
+                Exception e = new Exception(" client can not supported string message: " + message + " in channel: " + channel + ", url: ");
                 logger.error(e.getMessage(), e);
             } else {
                 handler.received(exchangeChannel, message);

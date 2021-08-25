@@ -1,5 +1,7 @@
 package com.idc.common.vertx.gate.common;
 
+import com.idc.common.po.RpcInvocation;
+
 import java.io.Serializable;
 
 /**
@@ -47,6 +49,7 @@ public class VertxTcpMessage implements Serializable {
 
     private String routeOrigin;
     private String routeDestination;
+    private RpcInvocation invocation;
     /**
      * TCP消息状态码
      */
@@ -116,6 +119,13 @@ public class VertxTcpMessage implements Serializable {
         this.socketId = socketId;
     }
 
+    public RpcInvocation getInvocation() {
+        return invocation;
+    }
+
+    public void setInvocation(RpcInvocation invocation) {
+        this.invocation = invocation;
+    }
     @Override
     public String toString() {
         return "{"
@@ -128,6 +138,7 @@ public class VertxTcpMessage implements Serializable {
                 + ",\"code\":\"" + code + '\"'
                 + ",\"side\":" + side
                 + ",\"socketId\":" + socketId
+                + ",\"invocation\":" + invocation
                 + "}";
 
     }

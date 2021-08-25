@@ -44,6 +44,14 @@ public interface ChannelHandler {
     void received(Channel channel, Object message) throws RpcException;
 
     /**
+     * on message received.
+     *
+     * @param channel channel.
+     * @param message message.
+     */
+    void receivedResult(Channel channel, Object message) throws RpcException;
+
+    /**
      * on exception caught.
      *
      * @param channel   channel.

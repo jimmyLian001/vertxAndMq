@@ -4,6 +4,7 @@ import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.exchage.Channel;
 import com.idc.common.vertx.gate.exchage.ChannelHandler;
+import com.idc.common.vertx.gate.exchage.ServderVertxChannel;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import org.slf4j.Logger;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 描述：
@@ -27,12 +30,13 @@ public class NetVertxServer extends AbstractServer {
     private NetClient client;
     private boolean connected = Boolean.FALSE;
     private ServerVertxVerticle netVertxVerticle;
-    private ChannelHandler channelHandler;
+    private static Map<String, Channel> channels = new ConcurrentHashMap<>();
+
 
     public NetVertxServer(ChannelHandler handler, RemoteAddress remoteAddress) throws RpcException {
         super(handler, remoteAddress);
-        this.channelHandler = handler;
     }
+
 
     /**
      * Init bootstrap
@@ -45,12 +49,17 @@ public class NetVertxServer extends AbstractServer {
         Vertx.vertx().deployVerticle(netVertxVerticle);
         netVertxVerticle.doOpen(8082);
         netVertxVerticle.connect();
-        channelHandler.setChannel(this.getChannel(new InetSocketAddress(8082)));
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(8082);
+        channelHandler.setChannel(this.getChannel(inetSocketAddress));
         netVertxVerticle.setChannelHandler(channelHandler);
+        Channel channel = this.getChannel(inetSocketAddress);
+        channels.put("8082", channel);
+        channelHandler.setChannel(channel);
     }
 
     @Override
     protected void doClose() throws Throwable {
+        channels.remove(String.valueOf(netVertxVerticle.getServer().actualPort()));
         netVertxVerticle.getServer().close();
     }
 
@@ -83,7 +92,11 @@ public class NetVertxServer extends AbstractServer {
      */
     @Override
     public Channel getChannel(InetSocketAddress remoteAddress) {
-        return null;
+        ServerVertxVerticle c = netVertxVerticle;
+        if (c == null || !c.isConnected()) {
+            return null;
+        }
+        return ServderVertxChannel.getOrAddChannel(c);
     }
 
     @Override

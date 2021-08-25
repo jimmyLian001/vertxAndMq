@@ -1,5 +1,10 @@
 package com.idc.common.vertx.gate.common;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * 描述：默认常用常量
  * <p>
@@ -11,4 +16,5 @@ package com.idc.common.vertx.gate.common;
 public class Const {
 
     public static String eventBusPre = "vertx.cluster.";
+    public static final ExecutorService executorService = new ThreadPoolExecutor(8, 16, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 }

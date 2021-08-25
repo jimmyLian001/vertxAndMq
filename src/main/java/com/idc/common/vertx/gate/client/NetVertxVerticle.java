@@ -107,8 +107,7 @@ public class NetVertxVerticle extends AbstractVerticle {
 
 
     public Response received(VertxTcpMessage message) {
-        Response response = new Response();
-        response.setId(Long.parseLong(message.getMessageId()));
+        Response response = new Response(Long.parseLong(message.getMessageId()));
         response.setResult(message.getContent());
         response.setRouteOrigin(message.getRouteOrigin());
         response.setRouteDestination(message.getRouteDestination());
@@ -127,6 +126,7 @@ public class NetVertxVerticle extends AbstractVerticle {
         vertxTcpMessage.setContent(req.getData());
         vertxTcpMessage.setRouteOrigin(req.getRouteOrigin());
         vertxTcpMessage.setRouteDestination(req.getRouteDestination());
+        vertxTcpMessage.setInvocation(req.getInvocation());
         netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
     }
 

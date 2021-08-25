@@ -28,9 +28,10 @@ public abstract class AbstractServer implements Server {
     private InetSocketAddress bindAddress;
     private int accepts;
     private int idleTimeout;
+    protected ChannelHandler channelHandler;
 
     public AbstractServer(ChannelHandler handler, RemoteAddress remoteAddress) throws RpcException {
-
+        this.channelHandler = handler;
         try {
             doOpen();
             if (logger.isInfoEnabled()) {

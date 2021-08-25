@@ -5,6 +5,8 @@ import com.idc.common.po.VertxMessageReq;
 import com.idc.common.vertx.gate.RemoteExchangeDelegate;
 import com.idc.common.vertx.gate.common.RemoteAddress;
 import com.idc.common.vertx.gate.common.VertxRouter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +21,15 @@ import org.springframework.stereotype.Service;
 @Service
 @VertxUrl(interfaceName = "ClientGateBusTransfer")
 public class ClientGateBusProcessImpl implements ClientGateBusProcess {
-
+    private static final Logger logger = LoggerFactory.getLogger(ClientGateBusProcessImpl.class);
     @Autowired
     private RemoteExchangeDelegate exchangeDelegate;
 
     @Override
-    public void transfer(VertxMessageReq params) {
+    public Object transfer(VertxMessageReq params) {
         //TODO loadBalance
-        exchangeDelegate.request(params.getContent(), new RemoteAddress("127.0.0.1", 8082),
+        logger.info("ClientGateBusTransfer receive:{}", params);
+        return exchangeDelegate.request(params.getContent(), new RemoteAddress("127.0.0.1", 8082),
                 new VertxRouter(params.getRouteOrigin(), params.getRouteDestination()), params.getInvocationRemote());
     }
 }
