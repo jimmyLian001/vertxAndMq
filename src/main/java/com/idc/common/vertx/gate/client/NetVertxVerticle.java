@@ -3,7 +3,6 @@ package com.idc.common.vertx.gate.client;
 import com.alibaba.fastjson.JSON;
 import com.idc.common.po.Response;
 import com.idc.common.util.VertxMsgUtils;
-import com.idc.common.vertx.gate.common.DefaultFuture;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxTcpMessage;
 import com.idc.common.vertx.gate.exchage.ChannelHandler;
@@ -15,9 +14,9 @@ import io.vertx.core.net.NetSocket;
 import io.vertx.core.parsetools.RecordParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 描述：
@@ -32,6 +31,12 @@ public class NetVertxVerticle extends AbstractVerticle {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private String socketId;
     private Vertx vertx;
+    private int port;
+    private String host;
+    private NetSocket netSocket;
+    private boolean connected = Boolean.FALSE;
+    private long recentHeartBeatTimestamp = 0;
+    private AtomicBoolean isConnecting = new AtomicBoolean(false);
 
     public void setChannelHandler(ChannelHandler channelHandler) {
         this.channelHandler = channelHandler;
@@ -43,13 +48,10 @@ public class NetVertxVerticle extends AbstractVerticle {
         this.vertx = vertx;
     }
 
-
     public NetSocket getNetSocket() {
         return netSocket;
     }
 
-    private NetSocket netSocket;
-    private boolean connected = Boolean.FALSE;
 
     @Override
     public void start() throws Exception {
@@ -61,6 +63,8 @@ public class NetVertxVerticle extends AbstractVerticle {
 
     public NetClient connect(int port, String host) {
         NetClient client = vertx.createNetClient();
+        this.host = host;
+        this.port = port;
         final RecordParser parser = RecordParser.newDelimited("idcEnd", h -> {
             String msg = h.toString();
             log.info("Net Vertx TCP client receive:{} ", msg);
@@ -68,16 +72,18 @@ public class NetVertxVerticle extends AbstractVerticle {
 
             if (response.getSide() == 0) {
                 socketId = response.getSocketId();
+                log.info("Net Vertx TCP client connect success:{} ", msg);
             } else {
                 if (response.isHeartBeat()) {
-                    log.info("vertx client receive heartBeat");
+                    recentHeartBeatTimestamp = System.currentTimeMillis();
+                    log.debug("vertx client receive heartBeat");
                 } else {
-                    // do anyThing
+                    log.info("Net Vertx TCP client receive:{} ", msg);
                     received(response);
                 }
             }
         });
-        //TODO connected
+        // 防止系统还未连接成功造成的获取状态失败
         connected = Boolean.TRUE;
         client.connect(port, host, conn -> {
             if (conn.succeeded()) {
@@ -86,9 +92,10 @@ public class NetVertxVerticle extends AbstractVerticle {
                 connected = Boolean.TRUE;
                 netSocket.handler(parser);
             } else {
-                conn.cause().printStackTrace();
+                connected = Boolean.FALSE;
                 log.error("Net Vertx TCP client connect to Server error:", conn.cause());
             }
+            isConnecting.compareAndSet(true, false);
         });
         VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
         vertxTcpMessage.setHeartBeat(Boolean.TRUE);
@@ -102,10 +109,31 @@ public class NetVertxVerticle extends AbstractVerticle {
                 netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
             }
         });
+
+        // 客户端每 30秒检测是否有心跳然后重连
+        vertx.setPeriodic(1000L * 30, t -> {
+            reconnect();
+        });
         return client;
     }
 
 
+    synchronized void reconnect() {
+        if (System.currentTimeMillis() - recentHeartBeatTimestamp > 30 * 1000 && !isConnecting.get()) {
+            isConnecting.compareAndSet(false, true);
+            log.warn("verxtx tcp client lost connection,try reconnecting...");
+            connected = Boolean.FALSE;
+            connect(this.port, this.host);
+        }
+    }
+
+
+    /**
+     * 当前通道接收到消息
+     *
+     * @param message 消息内容
+     * @return response
+     */
     public Response received(VertxTcpMessage message) {
         Response response = new Response(Long.parseLong(message.getMessageId()));
         response.setResult(message.getContent());
@@ -115,6 +143,11 @@ public class NetVertxVerticle extends AbstractVerticle {
         return response;
     }
 
+    /**
+     * 通过当前连接通道发送消息
+     *
+     * @param object 消息内容
+     */
     public void send(Object object) {
         Request req = (Request) object;
         VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
