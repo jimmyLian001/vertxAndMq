@@ -18,6 +18,8 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
 
     private static final long serialVersionUID = -6925924956850004727L;
 
+    private long id;
+
     private Object result;
 
     private Throwable exception;
@@ -74,6 +76,7 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
 
     private String routeOrigin;
     private String routeDestination;
+    private String socketAddress;
     @Override
     public Object recreate() throws Throwable {
         if (exception != null) {
@@ -99,6 +102,21 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
         return result;
     }
 
+    public String getSocketAddress() {
+        return socketAddress;
+    }
+
+    public void setSocketAddress(String socketAddress) {
+        this.socketAddress = socketAddress;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
     @Override
     public Object getValue() {
         return result;
@@ -184,6 +202,8 @@ public class AppResponse extends CompletableFuture<Result> implements Result{
                 ", attachments=" + attachments +
                 ", routeOrigin='" + routeOrigin + '\'' +
                 ", routeDestination='" + routeDestination + '\'' +
+                ", socketAddress='" + socketAddress + '\'' +
+                ", id='" + id + '\'' +
                 '}';
     }
 }

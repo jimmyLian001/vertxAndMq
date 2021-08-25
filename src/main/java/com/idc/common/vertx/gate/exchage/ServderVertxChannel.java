@@ -1,8 +1,7 @@
 package com.idc.common.vertx.gate.exchage;
 
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
-import com.idc.common.vertx.gate.client.NetVertxVerticle;
-import io.vertx.core.net.SocketAddress;
+import com.idc.common.vertx.gate.server.ServerVertxVerticle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,22 +18,22 @@ import java.util.concurrent.ConcurrentMap;
  * @version : Version:1.0.0
  * @date : 2021/8/22 ProjectName: vertxAndMq
  */
-public class VertxChannel extends AbstractChannel {
+public class ServderVertxChannel extends AbstractChannel {
 
-    private static final Logger logger = LoggerFactory.getLogger(VertxChannel.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServderVertxChannel.class);
     /**
      * the cache for netty channel and dubbo channel
      */
-    private static final ConcurrentMap<NetVertxVerticle, VertxChannel> CHANNEL_MAP = new ConcurrentHashMap<NetVertxVerticle, VertxChannel>();
+    private static final ConcurrentMap<ServerVertxVerticle, ServderVertxChannel> CHANNEL_MAP = new ConcurrentHashMap<ServerVertxVerticle, ServderVertxChannel>();
     /**
      * netty channel
      */
-    private final NetVertxVerticle channel;
+    private final ServerVertxVerticle channel;
 
     private final Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
 
-    private VertxChannel(NetVertxVerticle channel) {
+    private ServderVertxChannel(ServerVertxVerticle channel) {
         if (channel == null) {
             throw new IllegalArgumentException("netty channel == null;");
         }
@@ -48,13 +47,13 @@ public class VertxChannel extends AbstractChannel {
      * @param ch netty channel
      * @return
      */
-    public static VertxChannel getOrAddChannel(NetVertxVerticle ch) {
+    public static ServderVertxChannel getOrAddChannel(ServerVertxVerticle ch) {
         if (ch == null) {
             return null;
         }
-        VertxChannel ret = CHANNEL_MAP.get(ch);
+        ServderVertxChannel ret = CHANNEL_MAP.get(ch);
         if (ret == null) {
-            VertxChannel vertxChannel = new VertxChannel(ch);
+            ServderVertxChannel vertxChannel = new ServderVertxChannel(ch);
             if (ch.isConnected()) {
                 ret = CHANNEL_MAP.putIfAbsent(ch, vertxChannel);
             }
@@ -70,7 +69,7 @@ public class VertxChannel extends AbstractChannel {
      *
      * @param ch netty channel
      */
-    public static void removeChannelIfDisconnected(NetVertxVerticle ch) {
+    public static void removeChannelIfDisconnected(ServerVertxVerticle ch) {
         if (ch != null && !ch.isConnected()) {
             CHANNEL_MAP.remove(ch);
         }
@@ -78,18 +77,14 @@ public class VertxChannel extends AbstractChannel {
 
     @Override
     public InetSocketAddress getLocalAddress() {
-        return (InetSocketAddress) channel.getNetSocket().localAddress();
+        InetSocketAddress socketAddress = new InetSocketAddress(channel.getServer().actualPort());
+        return socketAddress;
     }
 
     @Override
     public InetSocketAddress getRemoteAddress() {
-        if (channel.getNetSocket() != null) {
-            SocketAddress socketAddress = channel.getNetSocket().remoteAddress();
-            return new InetSocketAddress(socketAddress.host(), socketAddress.port());
-        } else {
-            //TODO socket
-            return null;
-        }
+        //TODO
+        return null;
 
     }
 
@@ -119,6 +114,7 @@ public class VertxChannel extends AbstractChannel {
         boolean success = true;
         int timeout = 0;
         try {
+            //TODO
             channel.send(message);
         } catch (Throwable e) {
             throw new RpcException("Failed to send message " + message + " to " + getRemoteAddress() + ", cause: " + e.getMessage(), e);
@@ -160,7 +156,7 @@ public class VertxChannel extends AbstractChannel {
             if (logger.isInfoEnabled()) {
                 logger.info("Close netty channel " + channel);
             }
-            channel.getNetSocket().close();
+            channel.getServer().close();
         } catch (Exception e) {
             logger.warn(e.getMessage(), e);
         }
@@ -210,7 +206,7 @@ public class VertxChannel extends AbstractChannel {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        VertxChannel other = (VertxChannel) obj;
+        ServderVertxChannel other = (ServderVertxChannel) obj;
         if (channel == null) {
             if (other.channel != null) {
                 return false;

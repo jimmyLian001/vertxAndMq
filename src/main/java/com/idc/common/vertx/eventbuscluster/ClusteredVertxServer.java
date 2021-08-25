@@ -97,6 +97,22 @@ public class ClusteredVertxServer {
         return future.get();
     }
 
+    public CompletableFuture<AppResponse> sendMessageToEventBusAsn(String vertxEventBusName, VertxMessageReq vertxMessageReq, long timeOut) throws ExecutionException, InterruptedException {
+        CompletableFuture<AppResponse> future = new CompletableFuture<AppResponse>();
+        if (clusterVertx != null) {
+            vertxMessageReq.setTimeStamp(System.currentTimeMillis());
+            clusterVertx.eventBus().<JsonObject>send(vertxEventBusName, JsonObject.mapFrom(vertxMessageReq), new DeliveryOptions().setSendTimeout(timeOut), resultBody -> {
+                executorService.submit(new FeatureTask(resultBody, future));
+            });
+        } else {
+            AppResponse appResponse = new AppResponse();
+            appResponse.setValue("400");
+            appResponse.setException(new RpcException("Cluster Vertx has not init finished,please wait!"));
+            future.complete(appResponse);
+        }
+        return future;
+    }
+
     public static Invoker<Object> getInvoker(String key) {
         return invokerMap.get(key);
     }
