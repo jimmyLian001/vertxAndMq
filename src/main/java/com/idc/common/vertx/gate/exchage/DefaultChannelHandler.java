@@ -168,6 +168,24 @@ public class DefaultChannelHandler implements ChannelHandler {
     }
 
     @Override
+    public void receivedResult(Channel channel, Object message) throws RpcException {
+//        channel.setAttribute(KEY_READ_TIMESTAMP, System.currentTimeMillis());
+        final ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+        try {
+            if (message instanceof Response) {
+                handleResponse(channel, (Response) message);
+            } else if (message instanceof String) {
+                Exception e = new Exception(" client can not supported string message: " + message + " in channel: " + channel + ", url: ");
+                logger.error(e.getMessage(), e);
+            } else {
+                handler.received(exchangeChannel, message);
+            }
+        } finally {
+            HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+        }
+    }
+
+    @Override
     public void caught(Channel channel, Throwable exception) throws RpcException {
   /*      if (exception instanceof RpcException) {
             ExecutionException e = (ExecutionException) exception;

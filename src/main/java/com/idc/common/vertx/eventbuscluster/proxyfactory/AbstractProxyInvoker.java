@@ -59,7 +59,7 @@ public abstract class AbstractProxyInvoker<T> implements Invoker<T> {
                         result.setException(t);
                     }
                 } else {
-                    result.setValue(obj);
+                    result = (AppResponse) obj;
                 }
                 asyncRpcResult.complete(result);
             });

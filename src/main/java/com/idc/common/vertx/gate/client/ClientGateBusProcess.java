@@ -1,5 +1,6 @@
 package com.idc.common.vertx.gate.client;
 
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.VertxMessageReq;
 
 /**
@@ -12,5 +13,5 @@ import com.idc.common.po.VertxMessageReq;
  */
 public interface ClientGateBusProcess {
 
-    void transfer(VertxMessageReq params);
+    Object transfer(VertxMessageReq params);
 }

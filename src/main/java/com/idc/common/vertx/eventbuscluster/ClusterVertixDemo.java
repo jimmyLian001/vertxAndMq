@@ -1,14 +1,9 @@
 package com.idc.common.vertx.eventbuscluster;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.idc.common.po.*;
 import com.idc.common.util.VertxMsgUtils;
 import com.idc.common.vertx.gate.common.Const;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonObject;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +33,7 @@ public class ClusterVertixDemo {
 
     private String eventBusName = "vertx.cluster.ConnectSvr";
 
-    @PostConstruct
+    //    @PostConstruct
     public void initServerCluster() throws Exception {
         clusteredVertxServer.setAndStart(eventBusName);
     }
@@ -104,7 +99,7 @@ public class ClusterVertixDemo {
         }
     }
 
-    //    @PostConstruct
+    @PostConstruct
     public void initGateClient() throws Exception {
         clusterVertxClient.setAndStart();
         VertxMessageReq vertxMessageReq = new VertxMessageReq();
@@ -126,11 +121,41 @@ public class ClusterVertixDemo {
         invocationRemote.setMethodName("updateAddress");
         vertxMessageReq.setInvocationRemote(invocationRemote);
         vertxMessageReq.setInvocation(VertxMsgUtils.getGateClientInvocation());
-        AppResponse addressUpdateResult = clusterVertxClient.sendMessageToEventBusSyn(Const.eventBusPre + "BrokerGate", vertxMessageReq, 60);
+        vertxMessageReq.setRouteDestination("ConnectSvr");
+        vertxMessageReq.setRouteOrigin("BrokerSvr");
+        logger.info("address info update begin");
+        AppResponse addressUpdateResult = clusterVertxClient.sendMessageToEventBusSyn(Const.eventBusPre + "BrokerGate", vertxMessageReq, 30 * 1000);
         logger.info("address info update result:{}", addressUpdateResult.getValue());
-        if (!addressUpdateResult.hasException() && addressUpdateResult.getStatus() == Response.OK) {
-            AddressPo addressResult = TypeUtils.castToJavaBean(addressUpdateResult.getValue(), AddressPo.class);
-            System.out.println(addressResult);
+        final ExecutorService executorService = new ThreadPoolExecutor(26, 32, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        long begin = System.currentTimeMillis();
+        for (int i = 0; i < 10000; i++) {
+            executorService.submit(new FeatureGateTask(vertxMessageReq, begin));
+        }
+
+    }
+
+    public class FeatureGateTask implements Runnable {
+        private VertxMessageReq vertxMessageReq;
+        private long start;
+
+        public FeatureGateTask(VertxMessageReq vertxMessageReq, long start) {
+            this.vertxMessageReq = vertxMessageReq;
+            this.start = start;
+        }
+
+        @Override
+        public void run() {
+            AppResponse addressUpdateResult1 = null;
+            try {
+                logger.info("address info update begin");
+                AppResponse  addressUpdateResult = clusterVertxClient.sendMessageToEventBusSyn(Const.eventBusPre + "BrokerGate", vertxMessageReq, 30 * 1000);
+                logger.info("address info update result:{}", addressUpdateResult.getValue());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            logger.info("address info update result:{},时间差:{}", addressUpdateResult1, System.currentTimeMillis() - start);
+
+
         }
     }
 

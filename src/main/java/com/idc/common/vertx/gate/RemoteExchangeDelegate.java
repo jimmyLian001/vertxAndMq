@@ -1,5 +1,6 @@
 package com.idc.common.vertx.gate;
 
+import com.alibaba.fastjson.util.TypeUtils;
 import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
 import com.idc.common.po.RpcInvocation;
@@ -90,9 +91,7 @@ public class RemoteExchangeDelegate {
                 request.setInvocationRemote(VertxMsgUtils.getGateServerInvocation());
                 CompletableFuture<Object> requestFuture = exchangeClient.request(request);
                 Response response = (Response) requestFuture.get();
-                appResponse.setStatus(response.getStatus());
-                appResponse.setValue(response.getResult());
-                appResponse.setErrorMessage(response.getErrorMessage());
+                appResponse = TypeUtils.castToJavaBean(response.getResult(), AppResponse.class);
             } else {
                 appResponse.setStatus(Response.CHANNEL_INACTIVE);
                 appResponse.setErrorMessage("remote channel has not init");
