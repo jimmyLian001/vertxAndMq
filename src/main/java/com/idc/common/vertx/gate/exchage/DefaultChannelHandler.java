@@ -157,7 +157,7 @@ public class DefaultChannelHandler implements ChannelHandler {
             } else if (message instanceof Response) {
                 handleResponse(channel, (Response) message);
             } else if (message instanceof String) {
-                Exception e = new Exception("Dubbo client can not supported string message: " + message + " in channel: " + channel + ", url: ");
+                Exception e = new Exception("client can not supported string message: " + message + " in channel: " + channel + ", url: ");
                 logger.error(e.getMessage(), e);
             } else {
                 handler.received(exchangeChannel, message);
