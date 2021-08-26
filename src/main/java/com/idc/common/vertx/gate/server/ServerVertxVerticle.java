@@ -160,7 +160,37 @@ public class ServerVertxVerticle extends AbstractVerticle {
      * @param message 消息内容
      */
     public void send(Object message) {
-        AppResponse response = (AppResponse) message;
+        if (message instanceof AppResponse) {
+            sendResponse((AppResponse) message);
+        } else if (message instanceof Request) {
+            sendRequest((Request) message);
+        }
+    }
+
+    public void sendRequest(Request request) {
+        if (SOCKET_MAP.size() != 0) {
+            VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
+            vertxTcpMessage.setSide(2);
+            vertxTcpMessage.setTimeStamp(System.currentTimeMillis());
+            vertxTcpMessage.setContent(request);
+            vertxTcpMessage.setRouteOrigin(request.getRouteOrigin());
+            vertxTcpMessage.setRouteDestination(request.getRouteDestination());
+            vertxTcpMessage.setMessageId(String.valueOf(request.getId()));
+            vertxTcpMessage.setMessageType(1);
+            vertxTcpMessage.setInvocation(request.getInvocationRemote());
+            for (NetSocket netSocket : SOCKET_MAP.values()) {
+                // TODO 需要做算法选取客户端socket
+                try {
+                    netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
+                    break;
+                } catch (Exception e) {
+                    log.error("gate server try to send request error", e);
+                }
+            }
+        }
+    }
+
+    public void sendResponse(AppResponse response) {
         String socketId = null;
         if (SOCKET_ADDRESS_MAP.containsValue(response.getSocketAddress())) {
             for (Map.Entry<String, String> entry : SOCKET_ADDRESS_MAP.entrySet()) {
@@ -178,6 +208,7 @@ public class ServerVertxVerticle extends AbstractVerticle {
             vertxTcpMessage.setRouteOrigin(response.getRouteOrigin());
             vertxTcpMessage.setRouteDestination(response.getRouteDestination());
             vertxTcpMessage.setMessageId(String.valueOf(response.getId()));
+            vertxTcpMessage.setMessageType(2);
             SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
             log.info("ServerVertxVerticle send tcp message end");
         }

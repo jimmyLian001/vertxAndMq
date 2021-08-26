@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -81,7 +83,8 @@ public class NetVertxServer extends AbstractServer {
      */
     @Override
     public Collection<Channel> getChannels() {
-        return null;
+        Set<Channel> channelSet = new HashSet<>(channels.values());
+        return channelSet;
     }
 
     /**

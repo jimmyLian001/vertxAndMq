@@ -12,5 +12,5 @@ import com.idc.common.po.VertxMessageReq;
  */
 public interface ServerGateBusProcess {
 
-    void transfer(VertxMessageReq params);
+    Object transfer(VertxMessageReq params);
 }

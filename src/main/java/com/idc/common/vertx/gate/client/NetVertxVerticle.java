@@ -134,13 +134,23 @@ public class NetVertxVerticle extends AbstractVerticle {
      * @param message 消息内容
      * @return response
      */
-    public Response received(VertxTcpMessage message) {
-        Response response = new Response(Long.parseLong(message.getMessageId()));
-        response.setResult(message.getContent());
-        response.setRouteOrigin(message.getRouteOrigin());
-        response.setRouteDestination(message.getRouteDestination());
-        channelHandler.received(channelHandler.getChannel(), response);
-        return response;
+    public Object received(VertxTcpMessage message) {
+        if(message.getMessageType() == 1){
+            Request request = new Request(Long.parseLong(message.getMessageId()));
+            request.setData(message.getContent());
+            request.setInvocationRemote(message.getInvocation());
+            request.setRouteOrigin(message.getRouteOrigin());
+            request.setRouteDestination(message.getRouteDestination());
+            channelHandler.received(channelHandler.getChannel(), request);
+            return request;
+        }else{
+            Response response = new Response(Long.parseLong(message.getMessageId()));
+            response.setResult(message.getContent());
+            response.setRouteOrigin(message.getRouteOrigin());
+            response.setRouteDestination(message.getRouteDestination());
+            channelHandler.received(channelHandler.getChannel(), response);
+            return response;
+        }
     }
 
     /**
