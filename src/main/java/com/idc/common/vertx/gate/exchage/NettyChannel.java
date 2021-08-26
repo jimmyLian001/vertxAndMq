@@ -23,7 +23,7 @@ public class NettyChannel extends AbstractChannel {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyChannel.class);
     /**
-     * the cache for netty channel and dubbo channel
+     * the cache for channel
      */
     private static final ConcurrentMap<io.netty.channel.Channel, NettyChannel> CHANNEL_MAP = new ConcurrentHashMap<io.netty.channel.Channel, NettyChannel>();
     /**
@@ -42,12 +42,12 @@ public class NettyChannel extends AbstractChannel {
     }
 
     /**
-     * Get dubbo channel by netty channel through channel cache.
-     * Put netty channel into it if dubbo channel don't exist in the cache.
+     * Get channel by netty channel through channel cache.
+     * Put netty channel into it if channel don't exist in the cache.
      *
-     * @param ch      netty channel
+     * @param ch       channel
      * @param url
-     * @param handler dubbo handler that contain netty's handler
+     * @param handler handler that contain netty's handler
      * @return
      */
     public static NettyChannel getOrAddChannel(io.netty.channel.Channel ch) {
