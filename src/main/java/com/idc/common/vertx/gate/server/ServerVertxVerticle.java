@@ -110,7 +110,10 @@ public class ServerVertxVerticle extends AbstractVerticle {
                 long time = System.currentTimeMillis() - entry.getValue();
                 if (time > (1000 * 60)) {
                     log.debug("SocketId: {}, is to clear", entry.getKey());
-                    SOCKET_MAP.remove(entry.getKey()).close();
+                    NetSocket netSocket = SOCKET_MAP.remove(entry.getKey());
+                    if (netSocket != null) {
+                        netSocket.close();
+                    }
                     SOCKET_ADDRESS_MAP.remove(entry.getKey());
                     iterator.remove();
                 }
