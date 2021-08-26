@@ -1,7 +1,6 @@
 package com.idc.common.vertx.gate.common;
 
 import com.idc.common.po.Response;
-import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
 import com.idc.common.vertx.gate.exchage.Channel;
 import com.idc.common.vertx.gate.timer.HashedWheelTimer;
 import com.idc.common.vertx.gate.timer.Timeout;
@@ -163,7 +162,7 @@ public class DefaultFuture extends CompletableFuture<Object> {
         if (res == null) {
             throw new IllegalStateException("response cannot be null");
         }
-        this.complete(res);
+        this.complete(res.getResult());
     }
 
     private long getId() {

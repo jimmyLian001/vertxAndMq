@@ -67,7 +67,6 @@ public class NetVertxVerticle extends AbstractVerticle {
         this.port = port;
         final RecordParser parser = RecordParser.newDelimited("idcEnd", h -> {
             String msg = h.toString();
-            log.info("Net Vertx TCP client receive:{} ", msg);
             VertxTcpMessage response = JSON.parseObject(msg, VertxTcpMessage.class);
 
             if (response.getSide() == 0) {
@@ -76,7 +75,7 @@ public class NetVertxVerticle extends AbstractVerticle {
             } else {
                 if (response.isHeartBeat()) {
                     recentHeartBeatTimestamp = System.currentTimeMillis();
-                    log.debug("vertx client receive heartBeat");
+                    log.info("vertx client receive heartBeat");
                 } else {
                     log.info("Net Vertx TCP client receive:{} ", msg);
                     received(response);
@@ -118,11 +117,19 @@ public class NetVertxVerticle extends AbstractVerticle {
     }
 
 
+    private void checkBeforeConnect() {
+        if (netSocket != null) {
+            netSocket.close();
+        }
+    }
+
+
     synchronized void reconnect() {
         if (System.currentTimeMillis() - recentHeartBeatTimestamp > 30 * 1000 && !isConnecting.get()) {
             isConnecting.compareAndSet(false, true);
             log.warn("verxtx tcp client lost connection,try reconnecting...");
             connected = Boolean.FALSE;
+            checkBeforeConnect();
             connect(this.port, this.host);
         }
     }
