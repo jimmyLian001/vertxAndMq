@@ -2,6 +2,7 @@ package com.idc.common.vertx.gate.server;
 
 import com.alibaba.fastjson.JSON;
 import com.idc.common.po.AppResponse;
+import com.idc.common.po.Response;
 import com.idc.common.util.VertxMsgUtils;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxTcpMessage;
@@ -141,17 +142,26 @@ public class ServerVertxVerticle extends AbstractVerticle {
      * @param message 消息内容
      * @return Request
      */
-    private Request received(VertxTcpMessage message) {
-        SocketAddress socketAddress = SOCKET_MAP.get(message.getSocketId()).remoteAddress();
-        Request request = new Request(Long.parseLong(message.getMessageId()));
-        request.setData(message.getContent());
-        request.setRouteOrigin(message.getRouteOrigin());
-        request.setRouteDestination(message.getRouteDestination());
-        request.setInvocationRemote(message.getInvocation());
-        request.setSocketAddress(socketAddress.toString());
-        log.info("ServerVertxVerticle send tcp message received");
-        channelHandler.received(channelHandler.getChannel(), request);
-        return request;
+    private Object received(VertxTcpMessage message) {
+        if (message.getMessageType() == 1) {
+            SocketAddress socketAddress = SOCKET_MAP.get(message.getSocketId()).remoteAddress();
+            Request request = new Request(Long.parseLong(message.getMessageId()));
+            request.setData(message.getContent());
+            request.setRouteOrigin(message.getRouteOrigin());
+            request.setRouteDestination(message.getRouteDestination());
+            request.setInvocationRemote(message.getInvocation());
+            request.setSocketAddress(socketAddress.toString());
+            log.info("ServerVertxVerticle send tcp message received");
+            channelHandler.received(channelHandler.getChannel(), request);
+            return request;
+        } else {
+            Response response = new Response(Long.parseLong(message.getMessageId()));
+            response.setResult(message.getContent());
+            response.setRouteOrigin(message.getRouteOrigin());
+            response.setRouteDestination(message.getRouteDestination());
+            channelHandler.received(channelHandler.getChannel(), response);
+            return response;
+        }
     }
 
     /**
@@ -172,12 +182,12 @@ public class ServerVertxVerticle extends AbstractVerticle {
             VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
             vertxTcpMessage.setSide(2);
             vertxTcpMessage.setTimeStamp(System.currentTimeMillis());
-            vertxTcpMessage.setContent(request);
+            vertxTcpMessage.setContent(request.getData());
             vertxTcpMessage.setRouteOrigin(request.getRouteOrigin());
             vertxTcpMessage.setRouteDestination(request.getRouteDestination());
             vertxTcpMessage.setMessageId(String.valueOf(request.getId()));
             vertxTcpMessage.setMessageType(1);
-            vertxTcpMessage.setInvocation(request.getInvocationRemote());
+            vertxTcpMessage.setInvocation(request.getInvocation());
             for (NetSocket netSocket : SOCKET_MAP.values()) {
                 // TODO 需要做算法选取客户端socket
                 try {

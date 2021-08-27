@@ -117,11 +117,10 @@ public class RemoteExchangeDelegate {
                 request.setInvocation(invocation);
                 request.setInvocationRemote(VertxMsgUtils.getGateClientInvocation());
                 CompletableFuture<Object> requestFuture = exchangeServer.request(request);
-                Response response = (Response) requestFuture.get();
-                appResponse = TypeUtils.castToJavaBean(response.getResult(), AppResponse.class);
+                appResponse = TypeUtils.castToJavaBean(requestFuture.get(), AppResponse.class);
             } else {
                 appResponse.setStatus(Response.CHANNEL_INACTIVE);
-                appResponse.setErrorMessage("remote channel has not init");
+                appResponse.setErrorMessage("ServerRequest,remote channel has not init");
             }
         } catch (Exception e) {
             appResponse.setStatus(Response.BAD_RESPONSE);
