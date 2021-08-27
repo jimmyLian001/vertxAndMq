@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public abstract class AbstractClient implements Client {
 
-    protected static final String CLIENT_THREAD_POOL_NAME = "DubboClientHandler";
+    protected static final String CLIENT_THREAD_POOL_NAME = "ClientHandler";
     private static final Logger logger = LoggerFactory.getLogger(AbstractClient.class);
     private final Lock connectLock = new ReentrantLock();
     private final boolean needReconnect;

@@ -1,6 +1,8 @@
 package com.idc.common.vertx.gate.exchage;
 
 import com.idc.common.vertx.eventbuscluster.proxyfactory.RpcException;
+import com.idc.common.vertx.gate.common.DefaultFuture;
+import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.server.Server;
 import com.idc.common.vertx.gate.timer.HashedWheelTimer;
 import org.slf4j.Logger;
@@ -11,6 +13,8 @@ import org.springframework.util.CollectionUtils;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -157,5 +161,34 @@ public class HeaderExchangeServer implements ExchangeServer {
                     + ", cause: The server " + getLocalAddress() + " is closed!");
         }
         server.send(message, sent);
+    }
+
+    @Override
+    public CompletableFuture<Object> request(Object request) throws RpcException {
+        return request(request, 60 * 1000);
+    }
+
+    @Override
+    public CompletableFuture<Object> request(Object request, int timeout) throws RpcException {
+        if (closed.get()) {
+            throw new RpcException("Failed to send request " + request + ", cause: The channel " + this + " is closed!");
+        }
+        // create request.
+        Request req = (Request) request;
+        Iterator<Channel> iterator = this.getChannels().iterator();
+        if (!iterator.hasNext()) {
+            throw new RpcException("Failed to send request " + ", cause: The channel " + this + " is closed!");
+        }
+
+        Channel channel = iterator.next();
+        DefaultFuture future = DefaultFuture.newFuture(channel, req, timeout);
+        try {
+            channel.send(req);
+        } catch (RpcException e) {
+            future.cancel();
+            throw e;
+        }
+        return future;
+
     }
 }

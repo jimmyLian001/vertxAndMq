@@ -76,7 +76,7 @@ public class RemoteExchangeDelegate {
     }
 
 
-    public AppResponse request(Object object, RemoteAddress address, VertxRouter vertxRouter, RpcInvocation invocation) {
+    public AppResponse gateClientRequest(Object object, RemoteAddress address, VertxRouter vertxRouter, RpcInvocation invocation) {
         AppResponse appResponse = new AppResponse();
         appResponse.setRouteOrigin(vertxRouter.getRouteOrigin());
         appResponse.setRouteDestination(vertxRouter.getRouteDestination());
@@ -90,6 +90,33 @@ public class RemoteExchangeDelegate {
                 request.setInvocation(invocation);
                 request.setInvocationRemote(VertxMsgUtils.getGateServerInvocation());
                 CompletableFuture<Object> requestFuture = exchangeClient.request(request);
+                appResponse = TypeUtils.castToJavaBean(requestFuture.get(), AppResponse.class);
+            } else {
+                appResponse.setStatus(Response.CHANNEL_INACTIVE);
+                appResponse.setErrorMessage("remote channel has not init");
+            }
+        } catch (Exception e) {
+            appResponse.setStatus(Response.BAD_RESPONSE);
+            appResponse.setException(e);
+            appResponse.setErrorMessage(e.getMessage());
+        }
+        return appResponse;
+    }
+
+
+    public AppResponse gateServerRequest(Object object, RemoteAddress address, VertxRouter vertxRouter, RpcInvocation invocation) {
+        AppResponse appResponse = new AppResponse();
+        appResponse.setRouteOrigin(vertxRouter.getRouteOrigin());
+        appResponse.setRouteDestination(vertxRouter.getRouteDestination());
+        try {
+            if (exchangeServer != null) {
+                Request request = new Request();
+                request.setData(object);
+                request.setRouteDestination(vertxRouter.getRouteDestination());
+                request.setRouteOrigin(vertxRouter.getRouteOrigin());
+                request.setInvocation(invocation);
+                request.setInvocationRemote(VertxMsgUtils.getGateClientInvocation());
+                CompletableFuture<Object> requestFuture = exchangeServer.request(request);
                 Response response = (Response) requestFuture.get();
                 appResponse = TypeUtils.castToJavaBean(response.getResult(), AppResponse.class);
             } else {

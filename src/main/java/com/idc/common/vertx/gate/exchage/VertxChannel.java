@@ -23,7 +23,7 @@ public class VertxChannel extends AbstractChannel {
 
     private static final Logger logger = LoggerFactory.getLogger(VertxChannel.class);
     /**
-     * the cache for netty channel and dubbo channel
+     * the cache for channel
      */
     private static final ConcurrentMap<NetVertxVerticle, VertxChannel> CHANNEL_MAP = new ConcurrentHashMap<NetVertxVerticle, VertxChannel>();
     /**
@@ -42,8 +42,8 @@ public class VertxChannel extends AbstractChannel {
     }
 
     /**
-     * Get dubbo channel by netty channel through channel cache.
-     * Put netty channel into it if dubbo channel don't exist in the cache.
+     * Get channel by netty channel through channel cache.
+     * Put netty channel into it if channel don't exist in the cache.
      *
      * @param ch netty channel
      * @return

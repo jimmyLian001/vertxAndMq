@@ -62,6 +62,10 @@ public class VertxTcpMessage implements Serializable {
      * socketId
      */
     private String socketId;
+    /**
+     * 0：默认，传输用，1:request,2:response
+     */
+    private Integer messageType = 0;
 
     public boolean isHeartBeat() {
         return heartBeat;
@@ -126,6 +130,14 @@ public class VertxTcpMessage implements Serializable {
     public void setInvocation(RpcInvocation invocation) {
         this.invocation = invocation;
     }
+
+    public Integer getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(Integer messageType) {
+        this.messageType = messageType;
+    }
     @Override
     public String toString() {
         return "{"
@@ -137,6 +149,7 @@ public class VertxTcpMessage implements Serializable {
                 + ",\"routeDestination\":\"" + routeDestination + '\"'
                 + ",\"code\":\"" + code + '\"'
                 + ",\"side\":" + side
+                + ",\"messageType\":" + messageType
                 + ",\"socketId\":" + socketId
                 + ",\"invocation\":" + invocation
                 + "}";

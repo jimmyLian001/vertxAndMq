@@ -1,6 +1,7 @@
 package com.idc.common.vertx.gate.server;
 
 import com.idc.common.annotation.VertxUrl;
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.VertxMessageReq;
 import com.idc.common.vertx.gate.RemoteExchangeDelegate;
 import com.idc.common.vertx.gate.common.RemoteAddress;
@@ -27,10 +28,12 @@ public class ServerGateBusProcessImpl implements ServerGateBusProcess {
     private RemoteExchangeDelegate exchangeDelegate;
 
     @Override
-    public void transfer(VertxMessageReq params) {
+    public Object transfer(VertxMessageReq params) {
         //TODO loadBalance
         logger.info("ServerGateBusTransfer receive:{}", params);
-        exchangeDelegate.request(params.getContent(), new RemoteAddress("127.0.0.1", 8082),
+        AppResponse response = exchangeDelegate.gateServerRequest(params.getContent(), new RemoteAddress("127.0.0.1", 8082),
                 new VertxRouter(params.getRouteOrigin(), params.getRouteDestination()), params.getInvocationRemote());
+        logger.info("ServerGateBusTransfer result:{}", response);
+        return response;
     }
 }

@@ -2,7 +2,6 @@ package com.idc.common.vertx.gate.server;
 
 import com.alibaba.fastjson.JSON;
 import com.idc.common.po.AppResponse;
-import com.idc.common.po.Response;
 import com.idc.common.util.VertxMsgUtils;
 import com.idc.common.vertx.gate.common.Request;
 import com.idc.common.vertx.gate.common.VertxTcpMessage;
@@ -16,7 +15,6 @@ import io.vertx.core.parsetools.RecordParser;
 import io.vertx.core.streams.ReadStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,7 +29,6 @@ import java.util.Map;
  * @version : Version:1.0.0
  * @date : 2021/5/7 ProjectName: vertxDemo
  */
-@Component
 public class ServerVertxVerticle extends AbstractVerticle {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -61,10 +58,10 @@ public class ServerVertxVerticle extends AbstractVerticle {
         //idcEnd消息结束标识
         final RecordParser parser = RecordParser.newDelimited("idcEnd", h -> {
             VertxTcpMessage vertxTcpMessage = JSON.parseObject(h.toString(), VertxTcpMessage.class);
-            log.info("Net Vertx TCP Server receive:{}", vertxTcpMessage);
             final String socketId = vertxTcpMessage.getSocketId();
             // 心跳
             if (vertxTcpMessage.isHeartBeat()) {
+                log.debug("Net Vertx TCP Server receive heart beat:{}", vertxTcpMessage);
                 long timeStamp = System.currentTimeMillis();
                 ACTIVE_SOCKET_MAP.put(socketId, timeStamp);
                 vertxTcpMessage.setTimeStamp(timeStamp);
@@ -72,6 +69,7 @@ public class ServerVertxVerticle extends AbstractVerticle {
                 vertxTcpMessage.setSide(2);
                 SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
             } else {
+                log.info("Net Vertx TCP Server receive message:{}", vertxTcpMessage);
                 received(vertxTcpMessage);
             }
         });
@@ -101,28 +99,26 @@ public class ServerVertxVerticle extends AbstractVerticle {
         });
         //异常拦截
         stream.exceptionHandler(ex -> {
-            log.info("stream ex :{} ", ex.getMessage());
-            ex.printStackTrace();
+            log.info("stream ex : ", ex);
         });
 
         // 检查心跳
         vertx.setPeriodic(1000L * 60, t -> {
-            log.info("SOCKET MAP");
-            log.info(SOCKET_MAP.toString());
-            log.info("ACTIVE MAP");
-            log.info(ACTIVE_SOCKET_MAP.toString());
-
             Iterator<Map.Entry<String, Long>> iterator = ACTIVE_SOCKET_MAP.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<String, Long> entry = iterator.next();
                 long time = System.currentTimeMillis() - entry.getValue();
                 if (time > (1000 * 60)) {
-                    log.debug("SocketId: {}, 被清除", entry.getKey());
-                    SOCKET_MAP.remove(entry.getKey()).close();
+                    log.debug("SocketId: {}, is to clear", entry.getKey());
+                    NetSocket netSocket = SOCKET_MAP.remove(entry.getKey());
+                    if (netSocket != null) {
+                        netSocket.close();
+                    }
                     SOCKET_ADDRESS_MAP.remove(entry.getKey());
                     iterator.remove();
                 }
             }
+            log.info("current connect client size:{}", ACTIVE_SOCKET_MAP.size());
         });
 
         return server;
@@ -134,11 +130,17 @@ public class ServerVertxVerticle extends AbstractVerticle {
             if (res.succeeded()) {
                 log.info("Server start !!!");
             } else {
-                res.cause().printStackTrace();
+                log.error("Server start error:", res.cause());
             }
         });
     }
 
+    /**
+     * 服务端收到消息
+     *
+     * @param message 消息内容
+     * @return Request
+     */
     private Request received(VertxTcpMessage message) {
         SocketAddress socketAddress = SOCKET_MAP.get(message.getSocketId()).remoteAddress();
         Request request = new Request(Long.parseLong(message.getMessageId()));
@@ -147,12 +149,48 @@ public class ServerVertxVerticle extends AbstractVerticle {
         request.setRouteDestination(message.getRouteDestination());
         request.setInvocationRemote(message.getInvocation());
         request.setSocketAddress(socketAddress.toString());
+        log.info("ServerVertxVerticle send tcp message received");
         channelHandler.received(channelHandler.getChannel(), request);
         return request;
     }
 
+    /**
+     * 通过当前通道找到连接的客户端并发送消息
+     *
+     * @param message 消息内容
+     */
     public void send(Object message) {
-        AppResponse response = (AppResponse) message;
+        if (message instanceof AppResponse) {
+            sendResponse((AppResponse) message);
+        } else if (message instanceof Request) {
+            sendRequest((Request) message);
+        }
+    }
+
+    public void sendRequest(Request request) {
+        if (SOCKET_MAP.size() != 0) {
+            VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
+            vertxTcpMessage.setSide(2);
+            vertxTcpMessage.setTimeStamp(System.currentTimeMillis());
+            vertxTcpMessage.setContent(request);
+            vertxTcpMessage.setRouteOrigin(request.getRouteOrigin());
+            vertxTcpMessage.setRouteDestination(request.getRouteDestination());
+            vertxTcpMessage.setMessageId(String.valueOf(request.getId()));
+            vertxTcpMessage.setMessageType(1);
+            vertxTcpMessage.setInvocation(request.getInvocationRemote());
+            for (NetSocket netSocket : SOCKET_MAP.values()) {
+                // TODO 需要做算法选取客户端socket
+                try {
+                    netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
+                    break;
+                } catch (Exception e) {
+                    log.error("gate server try to send request error", e);
+                }
+            }
+        }
+    }
+
+    public void sendResponse(AppResponse response) {
         String socketId = null;
         if (SOCKET_ADDRESS_MAP.containsValue(response.getSocketAddress())) {
             for (Map.Entry<String, String> entry : SOCKET_ADDRESS_MAP.entrySet()) {
@@ -170,7 +208,9 @@ public class ServerVertxVerticle extends AbstractVerticle {
             vertxTcpMessage.setRouteOrigin(response.getRouteOrigin());
             vertxTcpMessage.setRouteDestination(response.getRouteDestination());
             vertxTcpMessage.setMessageId(String.valueOf(response.getId()));
+            vertxTcpMessage.setMessageType(2);
             SOCKET_MAP.get(socketId).write(VertxMsgUtils.joinMsg(vertxTcpMessage));
+            log.info("ServerVertxVerticle send tcp message end");
         }
     }
 
