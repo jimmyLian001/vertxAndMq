@@ -1,6 +1,7 @@
 package com.idc.common.service;
 
 import com.idc.common.po.AddressPo;
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.VertxMessageReq;
 
 /**
@@ -27,6 +28,6 @@ public interface UserAddressInfo {
      * @param params 待修改的地址信息
      * @return 更新的地址信息
      */
-    AddressPo updateAddress(VertxMessageReq params);
+    AppResponse updateAddress(VertxMessageReq params);
 
 }

@@ -1,6 +1,7 @@
 package com.idc.common.vertx.gate.client;
 
 import com.alibaba.fastjson.JSON;
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.Response;
 import com.idc.common.util.VertxMsgUtils;
 import com.idc.common.vertx.gate.common.Request;
@@ -142,7 +143,7 @@ public class NetVertxVerticle extends AbstractVerticle {
      * @return response
      */
     public Object received(VertxTcpMessage message) {
-        if(message.getMessageType() == 1){
+        if (message.getMessageType() == 1) {
             Request request = new Request(Long.parseLong(message.getMessageId()));
             request.setData(message.getContent());
             request.setInvocationRemote(message.getInvocation());
@@ -150,7 +151,7 @@ public class NetVertxVerticle extends AbstractVerticle {
             request.setRouteDestination(message.getRouteDestination());
             channelHandler.received(channelHandler.getChannel(), request);
             return request;
-        }else{
+        } else {
             Response response = new Response(Long.parseLong(message.getMessageId()));
             response.setResult(message.getContent());
             response.setRouteOrigin(message.getRouteOrigin());
@@ -166,17 +167,28 @@ public class NetVertxVerticle extends AbstractVerticle {
      * @param object 消息内容
      */
     public void send(Object object) {
-        Request req = (Request) object;
         VertxTcpMessage vertxTcpMessage = new VertxTcpMessage();
         vertxTcpMessage.setHeartBeat(Boolean.FALSE);
         vertxTcpMessage.setSide(1);
-        vertxTcpMessage.setTimeStamp(System.currentTimeMillis());
-        vertxTcpMessage.setMessageId(String.valueOf(req.getId()));
         vertxTcpMessage.setSocketId(socketId);
-        vertxTcpMessage.setContent(req.getData());
-        vertxTcpMessage.setRouteOrigin(req.getRouteOrigin());
-        vertxTcpMessage.setRouteDestination(req.getRouteDestination());
-        vertxTcpMessage.setInvocation(req.getInvocation());
+        vertxTcpMessage.setTimeStamp(System.currentTimeMillis());
+        if (object instanceof Request) {
+            Request req = (Request) object;
+            vertxTcpMessage.setMessageId(String.valueOf(req.getId()));
+            vertxTcpMessage.setContent(req.getData());
+            vertxTcpMessage.setRouteOrigin(req.getRouteOrigin());
+            vertxTcpMessage.setRouteDestination(req.getRouteDestination());
+            vertxTcpMessage.setInvocation(req.getInvocation());
+            vertxTcpMessage.setMessageType(1);
+        } else {
+            AppResponse response = (AppResponse) object;
+            vertxTcpMessage.setMessageId(String.valueOf(response.getId()));
+            vertxTcpMessage.setContent(response);
+            vertxTcpMessage.setRouteOrigin(response.getRouteOrigin());
+            vertxTcpMessage.setRouteDestination(response.getRouteDestination());
+            vertxTcpMessage.setMessageType(2);
+        }
+
         netSocket.write(VertxMsgUtils.joinMsg(vertxTcpMessage));
     }
 
