@@ -3,6 +3,7 @@ package com.idc.common.service.impl;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.idc.common.annotation.VertxUrl;
 import com.idc.common.po.AddressPo;
+import com.idc.common.po.AppResponse;
 import com.idc.common.po.VertxMessageReq;
 import com.idc.common.service.UserAddressInfo;
 import org.slf4j.Logger;
@@ -47,9 +48,10 @@ public class UserAddressInfoImpl implements UserAddressInfo {
      * @return 更新的地址信息
      */
     @Override
-    public AddressPo updateAddress(VertxMessageReq params) {
+    public AppResponse updateAddress(VertxMessageReq params) {
         AddressPo addressPo = TypeUtils.castToJavaBean(params.getContent(), AddressPo.class);
         addressPo.setAddress("上海市浦东信息陆家嘴环路未来资产大厦32F");
-        return addressPo;
+        AppResponse response = new AppResponse(addressPo);
+        return response;
     }
 }
